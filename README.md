@@ -3,6 +3,11 @@ dos_and_donts
 
 Experiments showing the "Do's and Don'ts" of connectome analysis
 
+If using notebooks please label with initials as described, put in `experiments`
+When we have code we trust for an experiment let's put it in `experiments` folder
+If there are utility funcs. that are shared across experiment, put them in `src` (likely
+`src.utils`).
+
 Project Organization
 ------------
 
