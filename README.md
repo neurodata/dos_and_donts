@@ -16,6 +16,7 @@ The Plan
 
 2 populations of IE graphs, each with probability matrix P_i
 
+
 Let b be a vector of length n linearly increasing over the range [eps, 1-eps]
 
 Let P1 be a grid determined by P1, i.e. P1(1,1)=b(1), P1(1,2)=b(2), ...
