@@ -16,31 +16,22 @@ The Plan
 
 2 populations of IE graphs, each with probability matrix P_i
 
-P1 is a constant, say, P1 = p* 1 * 1', eg p=0.01
+Let b be a vector of length n linearly increasing over the range [eps, 1-eps]
 
-P2 = P1 + D
+Let P1 be a grid determined by P1, i.e. P1(1,1)=b(1), P1(1,2)=b(2), ...
 
-D is a matrix whose entries range from 0+eps to 1-eps, for some value of eps, on a grid.
-in other words, D \in [0+eps, 1-p-eps]^{n \times n}, whose values range from 
+Let P2(u,v) = P1(u,v) + delta if P1(u,v) < 0.5 or
+    P2(u,v) = P1(u,v) - delta if P1(u,v) \geq 0.5
 
-(eps, eps+ delta, eps + 2*delta, ...., 1- p-eps)
-
-sample m IE graphs from P1 and also m from P2.
-run t-test independently on each potential edge.
+for k iterations:
+1. sample m IE graphs from P1 and also m from P2.
+2. run t-test independently on each potential edge.
 also run wilcoxon on each potential edge,
+
 say m = 100, for simplicity
 say n = 100, for simplicity
 
-
-scatterplots of:
-rank of significance of t-test vs. true D_ij
-rank of sig of wilcox vs true D_ij
-rank of t-test vs rank of wilcox
-
-heatmaps of:
-t-test pvals (on log scale)
-wilcox pvals (on log scale)
-D (on linear scale)
+plot power versus the elements of P1
 
 lesson 1: don't use t-test, for binary graphs use wilcoxon.
 
