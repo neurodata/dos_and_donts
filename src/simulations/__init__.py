@@ -1,0 +1,1 @@
+from .ie import IndependentEdge
