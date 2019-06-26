@@ -1,5 +1,6 @@
 # local package
 -e .
+graspy
 
 # external requirements
 click
