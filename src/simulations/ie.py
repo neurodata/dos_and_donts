@@ -61,7 +61,7 @@ class IndependentEdge:
 
         return x, y
 
-    def analytic_power(self, *tests, n_iter=100):
+    def calculate_power(self, *tests, n_iter=100):
         """
         Calculate the power of a given test
 
