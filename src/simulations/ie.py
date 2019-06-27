@@ -61,50 +61,48 @@ class IndependentEdge:
 
         return x, y
 
-    def analytic_power(self, test, n_iter=100):
+    def calculate_power(self, *tests, n_iter=100):
         """
         Calculate the power of a given test
 
         Parameters
         ----------
-        test : function
-            Statistical test from scipy.stats
+        *tests : functions
+            Statistical tests from scipy.stats
             Assumes function returns are of the form (statistic, p-value)
         n_iter : int (default = 1)
             Number of Monte Carlo runs.
 
         Returns
         -------
-        power_map : np.ndarray, shape (n, n)
+        power : np.ndarray, shape (n_tests, n_vertices, n_vertices)
             Proportion of tests that successfully rejected the null
-        ttest_map : np.ndarray, shape (n, n)
-            Array of spatially arranged p-values for T-test
-        wilcoxon_map : np.ndarray, shape (n, n)
-            Array of spatially arranged p-values for Wilcoxon
         """
 
         # Power proportion matrix
-        power_map = np.zeros(shape=(self.n_vertices, self.n_vertices))
+        power = np.zeros(shape=(len(tests), self.n_vertices, self.n_vertices))
 
         for _ in tqdm(range(n_iter)):
 
             # Get samples
             x, y = self._sample()
 
-            # Matrices to store p-values
-            pvals = np.zeros(shape=(self.n_vertices, self.n_vertices))
+            for idx, test in enumerate(tests):
 
-            for i, j in product(range(self.n_vertices), range(self.n_vertices)):
+                # Matrices to store p-values
+                pvals = np.zeros(shape=(self.n_vertices, self.n_vertices))
 
-                xi = x[:, i, j]
-                yi = y[:, i, j]
+                for i, j in product(range(self.n_vertices), range(self.n_vertices)):
 
-                if np.array_equal(xi, yi):
-                    pvals[i, j] = 1
-                else:
-                    _, pval = test(xi, yi)
-                    pvals[i, j] = pval
+                    xi = x[:, i, j]
+                    yi = y[:, i, j]
 
-            power_map += pvals < 0.05
+                    if np.array_equal(xi, yi):
+                        pvals[i, j] = 1
+                    else:
+                        _, pval = test(xi, yi)
+                        pvals[i, j] = pval
 
-        return power_map / n_iter
+                power[idx, :, :] += (pvals < 0.05)
+
+        return power / n_iter
