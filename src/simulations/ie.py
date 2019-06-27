@@ -75,7 +75,7 @@ class IndependentEdge:
 
         Returns
         -------
-        power_maps : list of np.ndarray, shape (n, n)
+        power : np.ndarray, shape (n_tests, n_vertices, n_vertices)
             Proportion of tests that successfully rejected the null
         """
 
