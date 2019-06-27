@@ -16,7 +16,6 @@ The Plan
 
 2 populations of IE graphs, each with probability matrix P_i
 
-
 Let b be a vector of length n linearly increasing over the range [eps, 1-eps]
 
 Let P1 be a grid determined by P1, i.e. P1(1,1)=b(1), P1(1,2)=b(2), ...
@@ -39,7 +38,7 @@ lesson 1: don't use t-test, for binary graphs use wilcoxon.
 
 ### simulation 2
 
-essentially the same, but this time, edges are in [-1,1], to correspond to correlations one could estimate.
+essentially the same, but this time, edges are in [-1, 1], to correspond to correlations one could estimate.
 
 A(u,v) | y=0 ~ N(0, sig), with sig set so that 99% of the distribution lives between -1 and 1
 A(u,v) | y=1 ~ N(D(u,v), sig), truncated to discard anything below -1 or above +1
