@@ -5,7 +5,6 @@ from itertools import product
 import numpy as np
 from tqdm import tqdm
 from graspy.simulations import sample_edges
-from scipy.stats import ttest_ind, wilcoxon
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
@@ -62,26 +61,30 @@ class IndependentEdge:
 
         return x, y
 
-    def edge_significance(self, n_iter=10):
+    def analytic_power(self, test, n_iter=100):
         """
-        Calculate the significance of each edge
+        Calculate the power of a given test
 
         Parameters
         ----------
+        test : function
+            Statistical test from scipy.stats
+            Assumes function returns are of the form (statistic, p-value)
         n_iter : int (default = 1)
             Number of Monte Carlo runs.
 
         Returns
         -------
+        power_map : np.ndarray, shape (n, n)
+            Proportion of tests that successfully rejected the null
         ttest_map : np.ndarray, shape (n, n)
             Array of spatially arranged p-values for T-test
         wilcoxon_map : np.ndarray, shape (n, n)
             Array of spatially arranged p-values for Wilcoxon
         """
 
-        # Power matrices
-        power_ttest = np.zeros(shape=(self.n_vertices, self.n_vertices))
-        power_wilcoxon = np.zeros(shape=(self.n_vertices, self.n_vertices))
+        # Power proportion matrix
+        power_map = np.zeros(shape=(self.n_vertices, self.n_vertices))
 
         for _ in tqdm(range(n_iter)):
 
@@ -89,8 +92,7 @@ class IndependentEdge:
             x, y = self._sample()
 
             # Matrices to store p-values
-            ttest_map = np.zeros(shape=(self.n_vertices, self.n_vertices))
-            wilcoxon_map = np.zeros(shape=(self.n_vertices, self.n_vertices))
+            pvals = np.zeros(shape=(self.n_vertices, self.n_vertices))
 
             for i, j in product(range(self.n_vertices), range(self.n_vertices)):
 
@@ -98,14 +100,11 @@ class IndependentEdge:
                 yi = y[:, i, j]
 
                 if np.array_equal(xi, yi):
-                    ttest_map[i, j] = wilcoxon_map[i, j] = 1
+                    pvals[i, j] = 1
                 else:
-                    _, pval_1 = ttest_ind(xi, yi)
-                    _, pval_2 = wilcoxon(xi, yi)
-                    ttest_map[i, j] = pval_1
-                    wilcoxon_map[i, j] = pval_2
+                    _, pval = test(xi, yi)
+                    pvals[i, j] = pval
 
-            power_ttest += ttest_map < 0.05
-            power_wilcoxon += wilcoxon_map < 0.05
+            power_map += pvals < 0.05
 
-        return power_ttest / n_iter, power_wilcoxon / n_iter
+        return power_map / n_iter
