@@ -1,5 +1,5 @@
-dos_and_donts
-==============================
+Connectomics Do's and Don'ts (DnDs)
+===================================
 
 Experiments showing the "Do's and Don'ts" of connectome analysis
 
@@ -7,7 +7,7 @@ If using notebooks please label with initials as described, put in `experiments`
 
 When we have code we trust for an experiment let's put it in `experiments` folder
 
-If there are utility funcs. that are shared across experiment, put them in `src` (likely
+If there are utility funcs that are shared across experiment, put them in `src` (likely
 `src.utils`).
 
 The Plan
@@ -16,38 +16,29 @@ The Plan
 
 2 populations of IE graphs, each with probability matrix P_i
 
-P1 is a constant, say, P1 = p* 1 * 1', eg p=0.01
+Let b be a vector of length n linearly increasing over the range [eps, 1-eps]
 
-P2 = P1 + D
+Let P1 be a grid determined by P1, i.e. P1(1,1)=b(1), P1(1,2)=b(2), ...
 
-D is a matrix whose entries range from 0+eps to 1-eps, for some value of eps, on a grid.
-in other words, D \in [0+eps, 1-p-eps]^{n \times n}, whose values range from 
+Let P2(u,v) = P1(u,v) + delta if P1(u,v) < 0.5 or
+    P2(u,v) = P1(u,v) - delta if P1(u,v) \geq 0.5
 
-(eps, eps+ delta, eps + 2*delta, ...., 1- p-eps)
-
-sample m IE graphs from P1 and also m from P2.
-run t-test independently on each potential edge.
+for k iterations:
+1. sample m IE graphs from P1 and also m from P2.
+2. run t-test independently on each potential edge.
 also run wilcoxon on each potential edge,
+
 say m = 100, for simplicity
 say n = 100, for simplicity
 
-
-scatterplots of:
-rank of significance of t-test vs. true D_ij
-rank of sig of wilcox vs true D_ij
-rank of t-test vs rank of wilcox
-
-heatmaps of:
-t-test pvals (on log scale)
-wilcox pvals (on log scale)
-D (on linear scale)
+plot power versus the elements of P1
 
 lesson 1: don't use t-test, for binary graphs use wilcoxon.
 
 
 ### simulation 2
 
-essentially the same, but this time, edges are in [-1,1], to correspond to correlations one could estimate.
+essentially the same, but this time, edges are in [-1, 1], to correspond to correlations one could estimate.
 
 A(u,v) | y=0 ~ N(0, sig), with sig set so that 99% of the distribution lives between -1 and 1
 A(u,v) | y=1 ~ N(D(u,v), sig), truncated to discard anything below -1 or above +1
@@ -184,10 +175,10 @@ Project Organization
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
     ├── README.md          <- The top-level README for developers using this project.
     ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
+    │   ├── external       <- Data from third party sources.
+    │   ├── interim        <- Intermediate data that has been transformed.
+    │   ├── processed      <- The final, canonical data sets for modeling.
+    │   └── raw            <- The original, immutable data dump.
     │
     ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
     │
@@ -200,28 +191,28 @@ Project Organization
     ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
     │
     ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
+    │   └── figures        <- Generated graphics and figures to be used in reporting
     │
     ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
     │                         generated with `pip freeze > requirements.txt`
     │
     ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
     ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
+    │   ├── __init__.py    <- Makes src a Python module
     │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
+    │   ├── data           <- Scripts to download or generate data
+    │   │   └── make_dataset.py
     │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
+    │   ├── features       <- Scripts to turn raw data into features for modeling
+    │   │   └── build_features.py
     │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
+    │   ├── models         <- Scripts to train models and then use trained models to make
     │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
+    │   │   ├── predict_model.py
+    │   │   └── train_model.py
     │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
+    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
+    │       └── visualize.py
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
 
