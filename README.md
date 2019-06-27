@@ -204,12 +204,13 @@ lesson: use inverse correlation
 
 ### sim 11
 
-something on time-varying connectomes
+something on time-varying connectomes:
+for each M subject, sample 10 timeseries from an AR process.
+compute dynamic connectomes
+for each coonnectome, compute discriminability and show that they are discriminable 
+even though generative process is random
 
-
-
-
-
+lesson: dynamic connectomes are nonsense
 
 
 ### fin
