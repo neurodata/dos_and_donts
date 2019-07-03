@@ -98,11 +98,22 @@ class IndependentEdge:
                     yi = y[:, i, j]
 
                     if np.array_equal(xi, yi):
-                        pvals[i, j] = 1
+                        pval = 1
+                    elif test.__name__ == "fisher_exact":
+                        xi_n_zero = np.count_nonzero(xi)
+                        yi_n_zero = np.count_nonzero(yi)
+                        data = [
+                            [xi_n_zero, self.sample_size - xi_n_zero],
+                            [yi_n_zero, self.sample_size - yi_n_zero],
+                        ]
+                        _, pval = test(data)
                     else:
                         _, pval = test(xi, yi)
-                        pvals[i, j] = pval
 
-                power[idx, :, :] += (pvals < 0.05)
+                    # Add pvalue to corresponding element in matrix
+                    pvals[i, j] = pval
+
+                # Tests with pvalues < 0.05 successfully rejected
+                power[idx, :, :] += pvals < 0.05
 
         return power / n_iter
