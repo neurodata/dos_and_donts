@@ -1,8 +1,6 @@
 import math
 
 import networkx as nx
-from networkx.algorithms.community import greedy_modularity_communities
-from networkx.algorithms.community.quality import modularity as compute_modularity
 
 
 def num_edges(graph):
@@ -26,7 +24,7 @@ def triangle_ratio(graph):
 
 
 def avg_shortest_path_length(graph):
-    APL = 0
+    APL = np.nan
     if nx.number_connected_components(graph) != 1:
         Gc = max(nx.connected_component_subgraphs(graph), key=len)
         if nx.number_of_nodes(Gc) != 1:
@@ -49,7 +47,7 @@ def diameter(graph):
     try:
         diam = nx.diameter(graph)
     except:
-        diam = -1
+        diam = np.nan
     return diam
 
 
@@ -117,8 +115,8 @@ def modularity(graph):
     maximization.
     """
     try:
-        communities = greedy_modularity_communities(graph)
-        Q = compute_modularity(graph, communities)
+        communities = nx.algorithms.community.greedy_modularity_communities(graph)
+        Q = nx.algorithms.community.quality.modularity(graph, communities)
 
         return Q
     except:
