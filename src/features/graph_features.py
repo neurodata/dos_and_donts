@@ -92,22 +92,22 @@ def small_world_omega(graph):
     if nx.number_connected_components(graph) != 1:
         Gc = max(nx.connected_component_subgraphs(graph), key=len)
         if nx.number_of_nodes(Gc) >= 4:
-            return nx.omega(Gc)
+            return nx.omega(Gc, 25)
         else:
             return np.nan
     else:
-        return nx.omega(graph)
+        return nx.omega(graph, 25)
 
 
 def small_world_sigma(graph):
     if nx.number_connected_components(graph) != 1:
         Gc = max(nx.connected_component_subgraphs(graph), key=len)
         if nx.number_of_nodes(Gc) >= 4:
-            return nx.sigma(Gc)
+            return nx.sigma(Gc, 25)
         else:
             return np.nan
     else:
-        return nx.sigma(graph)
+        return nx.sigma(graph, 25)
 
 
 def modularity(graph):
