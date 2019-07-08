@@ -27,7 +27,7 @@ dc1 = None #[i for i in range(50)]
 # = sum(dc)
 #dc = [d/s for d in dc]*2
 
-#np.random.seed(0)
+np.random.seed(0)
 for g in range(m):
 	if g==0:
 		P1 = sbm(n=n1, p=p1,dc=dc1)
@@ -40,7 +40,8 @@ lbls1 = _n_to_labels(np.array(n1))
 
 #%%
 #Create population 2
-sig=0.075
+sig=0.03
+print('Sigma is ' + str(sig))
 
 p_delta = np.random.normal(loc=0,scale=sig,size = (n1[0],n1[0]))
 p_delta[p_delta<-0.5] = -0.5
@@ -88,7 +89,7 @@ print("Number of significant edges from Fisher's exact with a=0.05, Bonferroni C
 
 heatmap(log_p,inner_hier_labels=lbls1, title ='Log-p for Edgewise Fisher Exact')
 
-plt.savefig('fisher_edge.jpg')
+plt.savefig('8_7_2019/fisher_edge.jpg')
 #%%
 #Blockwise test
 indices_1 = np.cumsum(n1)
@@ -123,21 +124,13 @@ print("Number of significant blocks from Fisher's exact with a=0.05, Bonferroni 
 
 heatmap(log_p_blocks,inner_hier_labels=lbls_block, title ='Log-p for Blockwise Fisher Exact')
 
-plt.savefig('fisher_block.jpg')
+plt.savefig('8_7_2019/fisher_block.jpg')
 
 #%%
 #Magic
 from mgcpy.independence_tests.dcorr import DCorr
+from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.mgc import MGC
-
-def k_sample_transform(x, y):
-    u = np.concatenate([x,y], axis=0)
-    v = np.concatenate([np.repeat(1, x.shape[0]), np.repeat(2, y.shape[0])], axis=0)
-    if len(u.shape) == 1:
-        u = u[..., np.newaxis]
-    if len(v.shape) == 1:
-        v = v[..., np.newaxis]
-    return u,v
 
 dcorr = DCorr()
 
@@ -145,6 +138,8 @@ indices_1 = np.cumsum(n1)
 num_blocks = indices_1.shape[0]
 log_p_blocks = np.zeros((num_blocks,num_blocks))
 lbls_block = np.arange(0,num_blocks)
+replication_factor = 1000
+
 for i in np.arange(num_blocks):
 	if i==0:
 		start_i = 0
@@ -158,11 +153,14 @@ for i in np.arange(num_blocks):
 			start_j = indices_1[j-1]
 		end_j = indices_1[j]
 		
-		P_hat_1 = np.sum(P1[start_i:end_i,start_j:end_j,:],2)/m
-		P_hat_2 = np.sum(P2[start_i:end_i,start_j:end_j,:],2)/m
+		P_hat_1 = np.sum(P1[start_i:end_i,start_j:end_j,:],2).flatten()
+		P_hat_2 = np.sum(P2[start_i:end_i,start_j:end_j,:],2).flatten()
 
 		u,v = k_sample_transform(P_hat_1,P_hat_2)
-		p,_ = dcorr.p_value(u,v)
+		p,_ = dcorr.p_value(u,v, replication_factor=replication_factor)
+
+		if p < 1/replication_factor:
+			p = 1/replication_factor
 
 		log_p_blocks[i,j] = np.log(p)
 		log_p_blocks[j,i] = np.log(p)
@@ -174,5 +172,5 @@ print("Number of significant blocks from MGC with a=0.05, Bonferroni Correction:
 
 heatmap(log_p_blocks,inner_hier_labels=lbls_block, title ='Log-p for Blockwise MGC')
 
-plt.savefig('mgc_block.jpg')
+plt.savefig('8_7_2019/mgc_block.jpg')
 #%%
