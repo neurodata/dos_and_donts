@@ -1,9 +1,20 @@
-import networkx as nx
 import math
+
+import networkx as nx
+from networkx.algorithms.community import greedy_modularity_communities
+from networkx.algorithms.community.quality import modularity as compute_modularity
 
 
 def num_edges(graph):
     return nx.number_of_edges(graph)
+
+
+def is_planar(graph):
+    return nx.check_planarity(graph)[0]
+
+
+def total_triangles(graph):
+    return np.sum(list(nx.triangles(graph).values()))
 
 
 def triangle_ratio(graph):
@@ -70,62 +81,46 @@ def node_connectivity(graph):
     return nx.node_connectivity(graph)
 
 
-def edge_connectivity_filter(self, min_edge_connectivity, max_edge_connectivity):
-    new_graph = []
-    for G in self.graphs:
-        edge_connectivity = nx.edge_connectivity(G)
-        if min_edge_connectivity < edge_connectivity < max_edge_connectivity:
-            new_graph.append(G)
-    return new_graph
+def global_efficiency(graph):
+    return nx.global_efficiency(graph)
 
 
-def connected(self, connected):
-    new_graph = []
-    for G in self.graphs:
-        if nx.is_connected(G) == connected:
-            new_graph.append(G)
-    return new_graph
+def local_efficiency(graph):
+    return nx.local_efficiency(graph)
 
 
-def bipartite(self, bipa):
-    new_graph = []
-    for G in self.graphs:
-        if bipa == nx.is_bipartite(G):
-            new_graph.append(G)
-    return new_graph
+def small_world_omega(graph):
+    if nx.number_connected_components(graph) != 1:
+        Gc = max(nx.connected_component_subgraphs(graph), key=len)
+        if nx.number_of_nodes(Gc) >= 4:
+            return nx.omega(Gc)
+        else:
+            return np.nan
+    else:
+        return nx.omega(graph)
 
 
-def tree(self, tree):
-    new_graph = []
-    for G in self.graphs:
-        if nx.is_tree(G) == tree:
-            new_graph.append(G)
-    return new_graph
+def small_world_sigma(graph):
+    if nx.number_connected_components(graph) != 1:
+        Gc = max(nx.connected_component_subgraphs(graph), key=len)
+        if nx.number_of_nodes(Gc) >= 4:
+            return nx.sigma(Gc)
+        else:
+            return np.nan
+    else:
+        return nx.sigma(graph)
 
 
-def eulerian(self, euler):
-    new_graph = []
-    for G in self.graphs:
-        if euler == nx.is_eulerian(G):
-            new_graph.append(G)
-    return new_graph
+def modularity(graph):
+    """
+    Modularity index based on Clauset-Newman-Moore greedy modularity
+    maximization.
+    """
+    try:
+        communities = greedy_modularity_communities(graph)
+        Q = compute_modularity(graph, communities)
 
-
-def regular(self, regul):
-    new_graph = []
-    for G in self.graphs:
-        if regul == self.is_regular(G):
-            new_graph.append(G)
-    return new_graph
-
-
-def is_regular(self, graph):
-    ll = nx.degree(graph)
-    max_num, min_num = 0, 0
-    for node in ll:
-        num = node[1]
-        if num > max_num:
-            max_num = num
-        if num < min_num:
-            min_num = num
-    return max_num == min_num
+        return Q
+    except:
+        # Deal with completely unconnected graph
+        return 0.0
