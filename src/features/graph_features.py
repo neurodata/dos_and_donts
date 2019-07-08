@@ -122,4 +122,4 @@ def modularity(graph):
         return Q
     except:
         # Deal with completely unconnected graph
-        return 0.0
+        return np.nan
