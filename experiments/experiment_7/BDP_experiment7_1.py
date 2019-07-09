@@ -1,20 +1,19 @@
 #%%
 import warnings
 
-import mgcpy
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from joblib import Parallel, delayed
 from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.dcorr import DCorr
-from mgcpy.independence_tests.mgc import MGC
 
-from graspy.embed import MultipleASE, OmnibusEmbed
+from graspy.embed import OmnibusEmbed
 from graspy.plot import heatmap, pairplot
 from graspy.simulations import sample_edges, sbm
 from graspy.utils import cartprod
 from src.utils import n_to_labels
 
-plot = False
 #%% [markdown]
 """
 pop 1 is a DC-SBM, 2 block, affinity the difference between it and pop 2 is that for
@@ -92,29 +91,7 @@ graphs_pop2 = []
 for i in range(n_graphs):
     graphs_pop2.append(dcsbm(node_labels, block_p, degree_corrections))
 # heatmap(graphs_pop2[0], inner_hier_labels=node_labels, cbar=False)
-# #%% old sim
-# dc_pop1 = np.array(sum(n) * [1 / verts_per_block])
-# dc_pop2 = np.array(sum(n) * [1 / verts_per_block])
-# dc_pop2[0] = dc_pop2[0] + diff
-# dc_pop2[1:verts_per_block] = (1 - dc_pop2[0]) / (verts_per_block - 1)
 
-# graphs_pop1 = []
-# for i in range(n_graphs):
-#     graphs_pop1.append(sbm(n, block_p, dc=dc_pop1))
-# heatmap(graphs_pop1[0], inner_hier_labels=pop_labels, cbar=False)
-
-# graphs_pop2 = []
-# for i in range(n_graphs):
-#     graphs_pop2.append(sbm(n, block_p, dc=dc_pop2))
-# heatmap(graphs_pop2[0], inner_hier_labels=pop_labels, cbar=False)
-#%%
-pop2graphs = np.array(graphs_pop2)
-p2 = np.mean(pop2graphs[:, :verts_per_block, :verts_per_block])
-p2
-
-pop1graphs = np.array(graphs_pop1)
-p1 = np.mean(pop1graphs[:, :verts_per_block, :verts_per_block])
-p1
 #%% Node-wise, embed and plot to see the 1 different node
 plot = True
 n_components = 2
@@ -142,6 +119,8 @@ test = DCorr()
 replication_factor = 10000
 
 #%%
+
+
 def node_wise_2_sample(node_ind):
     node_latent_pop1 = np.squeeze(pop1_latent[:, node_ind, :])
     node_latent_pop2 = np.squeeze(pop2_latent[:, node_ind, :])
@@ -157,73 +136,18 @@ def node_wise_2_sample(node_ind):
 for node_ind in range(3):
     title = str(node_wise_2_sample(node_ind))
     node_latent_pop1 = pop1_latent[:, node_ind, :]  # all graphs, one node, all dims
-    #     print(node_latent_pop1.shape)
     node_latent_pop2 = pop2_latent[:, node_ind, :]
     node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
-    #     print(node_latent.shape)
     pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
-    #     print(pop_indicator)
     pairplot(node_latent, labels=pop_indicator, title=title)
-#     pop_indicator = pop_indicator[:, np.newaxis]
-#     u, v = k_sample_transform(pop1_latent, pop2_latent, is_y_categorical=False)
-#     # mgc = MGC()
-#     p_val, meta = test.p_value(u, v, 1000)
-#     print(p_val)
-#     node_p_vals.append(p_val)
-#     node_metas.append(meta)
-# node_p_vals = np.array(node_p_vals)
-
-
-# def node_wise_2_sample(node_ind):
-#     node_latent_pop1 = pop1_latent[:, node_ind, :]  # all graphs, one node, all dims
-#     node_latent_pop2 = pop2_latent[:, node_ind, :]
-#     node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
-#     pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
-#     pop_indicator = pop_indicator[:, np.newaxis]
-#     u, v = k_sample_transform(node_latent, pop_indicator, is_y_categorical=True)
-#     p_val, meta = test.p_value(u, v, replication_factor)
-#     if p_val == 0:
-#         p_val = 1 / replication_factor
-#     return p_val
-
 
 #%%
 node_p_vals = Parallel(n_jobs=-2)(
     delayed(node_wise_2_sample)(i) for i in range(n_verts)
 )
 
-#%%
 p_val_mat = np.sqrt(np.outer(node_p_vals, node_p_vals))
 bonfer_thresh = 0.05 / n_verts
-# heatmap(p_val_mat, transform="log", vmax=bonfer_thresh, vmin=0)
-#%%
 sns.lineplot(x=list(range(n_verts)), y=node_p_vals)
 plt.yscale("log")
 plt.axhline(bonfer_thresh)
-# #%%
-# log_p = np.zeros(P1.shape[:2])
-# for i in range(P1.shape[0]):
-#     for j in range(i + 1, P1.shape[1]):
-#         edges_1 = P1[i, j, :]
-#         edges_2 = P2[i, j, :]
-#         table = np.array(
-#             [
-#                 [np.sum(edges_1), np.sum(edges_1 == 0)],
-#                 [np.sum(edges_2), np.sum(edges_2 == 0)],
-#             ]
-#         )
-#         _, p = fisher_exact(table)
-#         log_p[i, j] = np.log(p)
-#         log_p[j, i] = np.log(p)
-
-# num_tests = P1.shape[0] * (P1.shape[0] - 1) / 2
-# edgewise_sig = np.sum(log_p < np.log(0.05 / num_tests))
-# print(
-#     "Number of significant edges from Fisher's exact with a=0.05, Bonferroni Correction: "
-#     + str(edgewise_sig)
-# )
-
-# heatmap(log_p, inner_hier_labels=lbls1, title="Log-p for Edgewise Fisher Exact")
-
-
-#%%
