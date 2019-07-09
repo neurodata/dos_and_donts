@@ -34,15 +34,13 @@ if __name__ == "__main__":
 
     for sample_size in np.linspace(10, 100, 10):
 
-        ie = IndependentEdge(
-            sample_size=sample_size, n_vertices=10, epsilon=0.001, delta=0.05
-        )
+        ie = IndependentEdge(sample_size=sample_size, n_vertices=10, epsilon=0, delta=0)
         pvals = ie.calculate_pvals(
             scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact],
-            r_methods=["boschloo",],
+            r_methods=["boschloo"],
             n_iter=10,
         )
-        type1 = ie.calcualte_proportion_positive(pvals)
+        type1 = ie.calculate_proportion_positive(pvals)
 
         filename = "m{}".format(int(sample_size))
         to_dataframe(ie, type1, filename)

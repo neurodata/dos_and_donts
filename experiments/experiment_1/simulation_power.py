@@ -39,7 +39,7 @@ if __name__ == "__main__":
         )
         pvals = ie.calculate_pvals(
             scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact],
-            r_methods=["boschloo",],
+            r_methods=["boschloo"],
             n_iter=10,
         )
         power = ie.calculate_proportion_positive(pvals)
