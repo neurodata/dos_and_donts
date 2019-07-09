@@ -19,6 +19,7 @@ def _n_to_labels(n):
         return labels
 
 #Create population 1
+print('Making population 1...')
 m=100
 n1 = [50, 50]
 p1 = [[0.5, 0.2],
@@ -40,6 +41,7 @@ lbls1 = _n_to_labels(np.array(n1))
 
 #%%
 #Create population 2
+print('Making population 2...')
 sig=0.03
 print('Sigma is ' + str(sig))
 
@@ -72,7 +74,8 @@ lbls2 = _n_to_labels(n1)
 
 #%%
 #Edgewise test
-log_p = np.zeros(P1.shape[:2])
+print('Performing edgewise test...')
+ps = np.zeros(P1.shape[:2])
 for i in range(P1.shape[0]):
 	for j in range(i+1,P1.shape[1]):
 		edges_1 = P1[i,j,:]
@@ -80,21 +83,27 @@ for i in range(P1.shape[0]):
 		table = np.array([[np.sum(edges_1),np.sum(edges_1 == 0)],
 			[np.sum(edges_2),np.sum(edges_2 == 0)]])
 		_,p = fisher_exact(table)
-		log_p[i,j] = np.log(p)
-		log_p[j,i] = np.log(p)
+		ps[i,j] = p
+		ps[j,i] = p
 
 num_tests = P1.shape[0]*(P1.shape[0]-1)/2
-edgewise_sig = np.sum(log_p < np.log(0.05/num_tests))
+alpha_corrected = 0.05/num_tests
+edgewise_sig = np.sum(ps < alpha_corrected) - np.sum(n1) #all diagonals are 0
 print("Number of significant edges from Fisher's exact with a=0.05, Bonferroni Correction: " + str(edgewise_sig))
 
-heatmap(log_p,inner_hier_labels=lbls1, title ='Log-p for Edgewise Fisher Exact')
+vmin = np.log(alpha_corrected)
+
+heatmap(ps,inner_hier_labels=lbls1,
+	title ='Log-p for Edgewise Fisher Exact',
+	transform='log',vmin=vmin,vmax=0)
 
 plt.savefig('8_7_2019/fisher_edge.jpg')
 #%%
 #Blockwise test
+print('Performing blockwise test...')
 indices_1 = np.cumsum(n1)
 num_blocks = indices_1.shape[0]
-log_p_blocks = np.zeros((num_blocks,num_blocks))
+p_blocks = np.zeros((num_blocks,num_blocks))
 lbls_block = np.arange(0,num_blocks)
 for i in np.arange(num_blocks):
 	if i==0:
@@ -109,20 +118,39 @@ for i in np.arange(num_blocks):
 			start_j = indices_1[j-1]
 		end_j = indices_1[j]
 		
-		edges_1 = P1[start_i:end_i,start_j:end_j,:].flatten()
-		edges_2 = P2[start_i:end_i,start_j:end_j,:].flatten()
-		table = np.array([[np.sum(edges_1),np.sum(edges_1 == 0)],
-			[np.sum(edges_2),np.sum(edges_2 == 0)]])
+		block_1 = np.sum(P1[start_i:end_i,start_j:end_j,:],axis=2)
+		block_2 = np.sum(P2[start_i:end_i,start_j:end_j,:],axis=2)
+
+		#don't be redundant - only use upper triangle if on a diagonal block
+		if i == j:
+			idxs = np.triu_indices(n1[i],1)
+			ones_1 = np.sum(block_1[idxs])
+			zeros_1 = n1[i]*(n1[i]-1)*m/2 - ones_1
+			ones_2 = np.sum(block_2[idxs])
+			zeros_2 = n1[i]*(n1[i]-1)*m/2 - ones_2
+		else:
+			ones_1 = np.sum(block_1)
+			zeros_1 = n1[i]**2*m - ones_1
+			ones_2 = np.sum(block_2)
+			zeros_2 = n1[j]**2*m - ones_2
+
+		table = np.array([[ones_1,zeros_1],
+			[ones_2,zeros_2]])
+		
 		_,p = fisher_exact(table)
-		log_p_blocks[i,j] = np.log(p)
-		log_p_blocks[j,i] = np.log(p)
+		p_blocks[i,j] = p
+		p_blocks[j,i] = p
 
 num_tests = num_blocks*(num_blocks+1)/2
 alpha_corrected = 0.05/num_tests
-blockwise_sig = np.sum(log_p_blocks < np.log(alpha_corrected))
+blockwise_sig = np.sum(p_blocks < alpha_corrected)
 print("Number of significant blocks from Fisher's exact with a=0.05, Bonferroni Correction: " + str(blockwise_sig))
 
-heatmap(log_p_blocks,inner_hier_labels=lbls_block, title ='Log-p for Blockwise Fisher Exact')
+vmin = np.log(alpha_corrected)
+
+heatmap(p_blocks,inner_hier_labels=lbls_block,
+	title ='Log-p for Blockwise Fisher Exact',
+	transform='log',vmin=vmin,vmax=0)
 
 plt.savefig('8_7_2019/fisher_block.jpg')
 
@@ -136,7 +164,7 @@ dcorr = DCorr()
 
 indices_1 = np.cumsum(n1)
 num_blocks = indices_1.shape[0]
-log_p_blocks = np.zeros((num_blocks,num_blocks))
+p_blocks = np.zeros((num_blocks,num_blocks))
 lbls_block = np.arange(0,num_blocks)
 replication_factor = 1000
 
@@ -153,24 +181,37 @@ for i in np.arange(num_blocks):
 			start_j = indices_1[j-1]
 		end_j = indices_1[j]
 		
-		P_hat_1 = np.sum(P1[start_i:end_i,start_j:end_j,:],2).flatten()
-		P_hat_2 = np.sum(P2[start_i:end_i,start_j:end_j,:],2).flatten()
+		block_1 = np.sum(P1[start_i:end_i,start_j:end_j,:],axis=2)
+		block_2 = np.sum(P2[start_i:end_i,start_j:end_j,:],axis=2)
 
-		u,v = k_sample_transform(P_hat_1,P_hat_2)
+		#don't be redundant - only use upper triangle if on a diagonal block
+		if i == j:
+			idxs = np.triu_indices(n1[i],1)
+			edges_1 = block_1[idxs].flatten()
+			edges_2 = block_2[idxs].flatten()
+		else:
+			edges_1 = block_1.flatten()
+			edges_2 = block_2.flatten()
+
+		u,v = k_sample_transform(edges_1,edges_2)
 		p,_ = dcorr.p_value(u,v, replication_factor=replication_factor)
 
 		if p < 1/replication_factor:
 			p = 1/replication_factor
 
-		log_p_blocks[i,j] = np.log(p)
-		log_p_blocks[j,i] = np.log(p)
+		p_blocks[i,j] = p
+		p_blocks[j,i] = p
 
 num_tests = num_blocks*(num_blocks+1)/2
 alpha_corrected = 0.05/num_tests
-blockwise_sig = np.sum(log_p_blocks < np.log(alpha_corrected))
+blockwise_sig = np.sum(p_blocks < alpha_corrected)
 print("Number of significant blocks from MGC with a=0.05, Bonferroni Correction: " + str(blockwise_sig))
 
-heatmap(log_p_blocks,inner_hier_labels=lbls_block, title ='Log-p for Blockwise MGC')
+vmin = np.log(alpha_corrected)
+
+heatmap(p_blocks,inner_hier_labels=lbls_block,
+	title ='Log-p for Blockwise MGC',
+	transform='log',vmin=vmin,vmax=0)
 
 plt.savefig('8_7_2019/mgc_block.jpg')
 #%%
