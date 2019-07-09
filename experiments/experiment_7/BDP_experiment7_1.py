@@ -69,11 +69,11 @@ def dcsbm(vertex_assignments, block_p, degree_corrections):
 # 8885 gives the flip... with randomized svd
 np.random.seed(8889)
 block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
-verts_per_block = 200
+verts_per_block = 1000
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
 node_labels = n_to_labels(n).astype(int)
-n_graphs = 25
+n_graphs = 20
 diff = 0
 
 vertex_assignments = np.zeros(n_verts, dtype=int)
@@ -82,6 +82,9 @@ degree_corrections = np.ones_like(vertex_assignments)
 
 
 degree_corrections = np.ones(n_verts)
+degree_corrections[0] += diff
+degree_corrections[1:verts_per_block] -= diff / (verts_per_block - 1)
+
 graphs_pop1 = []
 for i in range(n_graphs):
     graphs_pop1.append(dcsbm(node_labels, block_p, degree_corrections))
@@ -100,7 +103,7 @@ for i in range(n_graphs):
 n_components = 2
 
 # mase = MultipleASE(n_components=n_components)
-omni = OmnibusEmbed(n_components=n_components)
+omni = OmnibusEmbed(n_components=n_components, algorithm="truncated")
 pop1_latent = omni.fit_transform(graphs_pop1)
 pop2_latent = omni.fit_transform(graphs_pop2)
 labels1 = verts_per_block * ["Pop1 Block1"] + verts_per_block * ["Pop1 Block2"]
@@ -155,10 +158,10 @@ indicator = np.zeros(n_verts, dtype=bool)
 indicator[0] = True
 plot_data["perturbed"] = indicator
 bonfer_thresh = 0.05 / n_verts
-g = sns.scatterplot(data=plot_data, x="node index", y="p value", hue="perturbed")
+g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40)
 plt.yscale("log")
 plt.ylim([1e-6, 1])
-plt.axhline(bonfer_thresh)
-
+plt.axhline(bonfer_thresh, c="r")
+plt.savefig("exp7.pdf", format="pdf", facecolor="w")
 
 #%%
