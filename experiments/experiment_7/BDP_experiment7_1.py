@@ -7,12 +7,17 @@ import seaborn as sns
 from joblib import Parallel, delayed
 from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.dcorr import DCorr
+import pandas as pd
 
 from graspy.embed import OmnibusEmbed
 from graspy.plot import heatmap, pairplot
 from graspy.simulations import sample_edges, sbm
 from graspy.utils import cartprod
 from src.utils import n_to_labels
+
+sns.set_context("talk")
+plt.style.use("seaborn-white")
+
 
 #%% [markdown]
 """
@@ -63,13 +68,13 @@ def dcsbm(vertex_assignments, block_p, degree_corrections):
 # 8888 works when diff == 0 with randomized svd
 # 8885 gives the flip... with randomized svd
 np.random.seed(8889)
-block_p = np.array([[0.15, 0.05], [0.05, 0.15]])
-verts_per_block = 100
+block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
+verts_per_block = 200
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
 node_labels = n_to_labels(n).astype(int)
-n_graphs = 200
-diff = 0.25
+n_graphs = 25
+diff = 0
 
 vertex_assignments = np.zeros(n_verts, dtype=int)
 vertex_assignments[verts_per_block:] = 1
@@ -85,7 +90,6 @@ for i in range(n_graphs):
 # modify the dcs for the next population
 degree_corrections[0] += diff
 degree_corrections[1:verts_per_block] -= diff / (verts_per_block - 1)
-print(np.mean(degree_corrections[:verts_per_block]))
 
 graphs_pop2 = []
 for i in range(n_graphs):
@@ -93,7 +97,6 @@ for i in range(n_graphs):
 # heatmap(graphs_pop2[0], inner_hier_labels=node_labels, cbar=False)
 
 #%% Node-wise, embed and plot to see the 1 different node
-plot = True
 n_components = 2
 
 # mase = MultipleASE(n_components=n_components)
@@ -108,15 +111,14 @@ labels = np.concatenate((labels1, labels2), axis=0)
 plot_pop1_latent = pop1_latent.reshape((n_graphs * n_verts, n_components))
 plot_pop2_latent = pop2_latent.reshape((n_graphs * n_verts, n_components))
 plot_latents = np.concatenate((plot_pop1_latent, plot_pop2_latent), axis=0)
-if plot:
-    pairplot(plot_latents, labels=labels, alpha=0.3)
+pairplot(plot_latents, labels=labels, alpha=0.3, height=4)
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 node_p_vals = []
 node_metas = []
 test = DCorr()
-replication_factor = 10000
+replication_factor = 100000
 
 #%%
 
@@ -134,20 +136,29 @@ def node_wise_2_sample(node_ind):
 
 
 for node_ind in range(3):
-    title = str(node_wise_2_sample(node_ind))
+    title = f"p-value: {node_wise_2_sample(node_ind):.3e}"
     node_latent_pop1 = pop1_latent[:, node_ind, :]  # all graphs, one node, all dims
     node_latent_pop2 = pop2_latent[:, node_ind, :]
     node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
     pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
-    pairplot(node_latent, labels=pop_indicator, title=title)
+    pairplot(node_latent, labels=pop_indicator, title=title, height=4)
 
 #%%
+
 node_p_vals = Parallel(n_jobs=-2)(
     delayed(node_wise_2_sample)(i) for i in range(n_verts)
 )
-
-p_val_mat = np.sqrt(np.outer(node_p_vals, node_p_vals))
+plot_data = pd.DataFrame(columns=["p value", "node index", "perturbed"])
+plot_data["p value"] = node_p_vals
+plot_data["node index"] = list(range(n_verts))
+indicator = np.zeros(n_verts, dtype=bool)
+indicator[0] = True
+plot_data["perturbed"] = indicator
 bonfer_thresh = 0.05 / n_verts
-sns.lineplot(x=list(range(n_verts)), y=node_p_vals)
+g = sns.scatterplot(data=plot_data, x="node index", y="p value", hue="perturbed")
 plt.yscale("log")
+plt.ylim([1e-6, 1])
 plt.axhline(bonfer_thresh)
+
+
+#%%
