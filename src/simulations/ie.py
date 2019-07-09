@@ -3,9 +3,15 @@ import warnings
 from itertools import product
 
 import numpy as np
-from tqdm import tqdm
 from graspy.simulations import sample_edges
+from rpy2.robjects.packages import importr
+from tqdm import tqdm
 
+# Import tests from R
+barnard = importr("Barnard")
+exact = importr("exact2x2")
+
+# Try to mute any warnings
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
@@ -61,16 +67,18 @@ class IndependentEdge:
 
         return x, y
 
-    def calculate_power(self, *tests, n_iter=100):
+    def calculate_power(self, scipy_methods=[], r_methods=[], n_iter=100):
         """
         Calculate the power of a given test
 
         Parameters
         ----------
-        *tests : functions
+        scipy_methods : list of functions
             Statistical tests from scipy.stats
             Assumes function returns are of the form (statistic, p-value)
-        n_iter : int (default = 1)
+        r_methods : list of strings
+            Strings corresponding to methods in R
+        n_iter : int (default = 100)
             Number of Monte Carlo runs.
 
         Returns
@@ -80,7 +88,9 @@ class IndependentEdge:
         """
 
         # Power proportion matrix
-        power = np.zeros(shape=(len(tests), self.n_vertices, self.n_vertices))
+        tests = scipy_methods + r_methods
+        n_tests = len(tests)
+        power = np.zeros(shape=(n_tests, self.n_vertices, self.n_vertices))
 
         for _ in tqdm(range(n_iter)):
 
@@ -97,11 +107,27 @@ class IndependentEdge:
                     xi = x[:, i, j]
                     yi = y[:, i, j]
 
+                    xi_n_zero = np.count_nonzero(xi)
+                    yi_n_zero = np.count_nonzero(yi)
+
                     if np.array_equal(xi, yi):
                         pval = 1
+                    elif test == "boschloo":
+                        pval = exact.boschloo(
+                            xi_n_zero,
+                            self.sample_size,
+                            yi_n_zero,
+                            self.sample_size,
+                            alternative="two.sided",
+                        ).rx2("p.value")[0]
+                    elif test == "barnard":
+                        pval = barnard.barnard_test(
+                            xi_n_zero,
+                            self.sample_size - xi_n_zero,
+                            yi_n_zero,
+                            self.sample_size - yi_n_zero,
+                        ).rx2("p.value")[1]
                     elif test.__name__ == "fisher_exact":
-                        xi_n_zero = np.count_nonzero(xi)
-                        yi_n_zero = np.count_nonzero(yi)
                         data = [
                             [xi_n_zero, self.sample_size - xi_n_zero],
                             [yi_n_zero, self.sample_size - yi_n_zero],
