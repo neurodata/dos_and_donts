@@ -69,7 +69,7 @@ def dcsbm(vertex_assignments, block_p, degree_corrections):
 # 8885 gives the flip... with randomized svd
 np.random.seed(8889)
 block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
-verts_per_block = 500
+verts_per_block = 2000
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
 node_labels = n_to_labels(n).astype(int)
@@ -105,7 +105,7 @@ n_components = 2
 
 # mase = MultipleASE(n_components=n_components)
 print("Doing Omnibus Embedding")
-omni = OmnibusEmbed(n_components=n_components, algorithm="full")
+omni = OmnibusEmbed(n_components=n_components, algorithm="truncated")
 graphs = np.concatenate((graphs_pop1, graphs_pop2), axis=0)
 #%%
 pop_latent = omni.fit_transform(graphs)
