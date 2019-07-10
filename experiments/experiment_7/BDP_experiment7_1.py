@@ -103,6 +103,7 @@ for i in range(n_graphs):
 n_components = 2
 
 # mase = MultipleASE(n_components=n_components)
+print("Doing Omnibus Embedding")
 omni = OmnibusEmbed(n_components=n_components, algorithm="truncated")
 pop1_latent = omni.fit_transform(graphs_pop1)
 pop2_latent = omni.fit_transform(graphs_pop2)
@@ -114,16 +115,14 @@ labels = np.concatenate((labels1, labels2), axis=0)
 plot_pop1_latent = pop1_latent.reshape((n_graphs * n_verts, n_components))
 plot_pop2_latent = pop2_latent.reshape((n_graphs * n_verts, n_components))
 plot_latents = np.concatenate((plot_pop1_latent, plot_pop2_latent), axis=0)
-pairplot(plot_latents, labels=labels, alpha=0.3, height=4)
+# pairplot(plot_latents, labels=labels, alpha=0.3, height=4)
 
-warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore")
 
 node_p_vals = []
 node_metas = []
 test = DCorr()
 replication_factor = 100000
-
-#%%
 
 
 def node_wise_2_sample(node_ind):
@@ -144,11 +143,11 @@ for node_ind in range(3):
     node_latent_pop2 = pop2_latent[:, node_ind, :]
     node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
     pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
-    pairplot(node_latent, labels=pop_indicator, title=title, height=4)
+    # pairplot(node_latent, labels=pop_indicator, title=title, height=4)
 
 #%%
 
-node_p_vals = Parallel(n_jobs=-2)(
+node_p_vals = Parallel(n_jobs=-2, verbose=5)(
     delayed(node_wise_2_sample)(i) for i in range(n_verts)
 )
 plot_data = pd.DataFrame(columns=["p value", "node index", "perturbed"])
@@ -162,6 +161,10 @@ g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40)
 plt.yscale("log")
 plt.ylim([1e-6, 1])
 plt.axhline(bonfer_thresh, c="r")
-plt.savefig("exp7.pdf", format="pdf", facecolor="w")
+plt.savefig(
+    "./dos_and_donts/experiments/experiment_7/exp7_pvals.pdf",
+    format="pdf",
+    facecolor="w",
+)
 
 #%%
