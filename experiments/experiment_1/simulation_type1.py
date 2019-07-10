@@ -18,11 +18,10 @@ def to_dataframe(ie, type1, filename):
             "t-test": type1[0].flatten(),
             "mann-whitney": type1[1].flatten(),
             "fisher": type1[2].flatten(),
-            "boschloo": type1[3].flatten(),
         }
     ).melt(
         id_vars=[r"$p_{ij}$"],
-        value_vars=["t-test", "mann-whitney", "fisher", "boschloo"],
+        value_vars=["t-test", "mann-whitney", "fisher"],
         var_name="test",
         value_name="type1",
     )
@@ -36,9 +35,7 @@ if __name__ == "__main__":
 
         ie = IndependentEdge(sample_size=sample_size, n_vertices=10, epsilon=0, delta=0)
         pvals = ie.calculate_pvals(
-            scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact],
-            r_methods=["boschloo"],
-            n_iter=10,
+            scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact], n_iter=1000 
         )
         type1 = ie.calculate_proportion_positive(pvals)
 

@@ -18,11 +18,10 @@ def to_dataframe(ie, power, filename):
             "t-test": power[0].flatten(),
             "mann-whitney": power[1].flatten(),
             "fisher": power[2].flatten(),
-            "boschloo": power[3].flatten(),
         }
     ).melt(
         id_vars=[r"$p_{ij}$"],
-        value_vars=["t-test", "mann-whitney", "fisher", "boschloo"],
+        value_vars=["t-test", "mann-whitney", "fisher"],
         var_name="test",
         value_name="power",
     )
@@ -38,9 +37,7 @@ if __name__ == "__main__":
             sample_size=sample_size, n_vertices=10, epsilon=0.001, delta=0.05
         )
         pvals = ie.calculate_pvals(
-            scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact],
-            r_methods=["boschloo"],
-            n_iter=10,
+            scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact], n_iter=1000
         )
         power = ie.calculate_proportion_positive(pvals)
 
