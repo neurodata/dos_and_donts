@@ -17,7 +17,7 @@ from src.utils import n_to_labels
 
 sns.set_context("talk")
 plt.style.use("seaborn-white")
-
+sns.set_palette("deep")
 
 #%% [markdown]
 """
@@ -69,12 +69,12 @@ def dcsbm(vertex_assignments, block_p, degree_corrections):
 # 8885 gives the flip... with randomized svd
 np.random.seed(8889)
 block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
-verts_per_block = 1000
+verts_per_block = 800
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
 node_labels = n_to_labels(n).astype(int)
-n_graphs = 20
-diff = 0
+n_graphs = 10
+diff = 0.5
 
 vertex_assignments = np.zeros(n_verts, dtype=int)
 vertex_assignments[verts_per_block:] = 1
@@ -85,6 +85,7 @@ degree_corrections = np.ones(n_verts)
 degree_corrections[0] += diff
 degree_corrections[1:verts_per_block] -= diff / (verts_per_block - 1)
 
+print("Generating graph populations")
 graphs_pop1 = []
 for i in range(n_graphs):
     graphs_pop1.append(dcsbm(node_labels, block_p, degree_corrections))
@@ -105,29 +106,31 @@ n_components = 2
 # mase = MultipleASE(n_components=n_components)
 print("Doing Omnibus Embedding")
 omni = OmnibusEmbed(n_components=n_components, algorithm="truncated")
-pop1_latent = omni.fit_transform(graphs_pop1)
-pop2_latent = omni.fit_transform(graphs_pop2)
+graphs = np.concatenate((graphs_pop1, graphs_pop2), axis=0)
+#%%
+pop_latent = omni.fit_transform(graphs)
 labels1 = verts_per_block * ["Pop1 Block1"] + verts_per_block * ["Pop1 Block2"]
 labels1 = np.tile(labels1, n_graphs)
 labels2 = verts_per_block * ["Pop2 Block1"] + verts_per_block * ["Pop2 Block2"]
 labels2 = np.tile(labels2, n_graphs)
 labels = np.concatenate((labels1, labels2), axis=0)
-plot_pop1_latent = pop1_latent.reshape((n_graphs * n_verts, n_components))
-plot_pop2_latent = pop2_latent.reshape((n_graphs * n_verts, n_components))
-plot_latents = np.concatenate((plot_pop1_latent, plot_pop2_latent), axis=0)
-# pairplot(plot_latents, labels=labels, alpha=0.3, height=4)
+# plot_pop1_latent = pop1_latent.reshape((n_graphs * n_verts, n_components))
+# plot_pop2_latent = pop2_latent.reshape((n_graphs * n_verts, n_components))
+plot_pop_latent = pop_latent.reshape((2 * n_graphs * n_verts, n_components))
+# plot_latents = np.concatenate((plot_pop1_latent, plot_pop2_latent), axis=0)
+pairplot(plot_pop_latent, labels=labels, alpha=0.3, height=4)
 
+#%%
 warnings.filterwarnings("ignore")
-
 node_p_vals = []
 node_metas = []
 test = DCorr()
-replication_factor = 100000
+replication_factor = 10000000
 
 
 def node_wise_2_sample(node_ind):
-    node_latent_pop1 = np.squeeze(pop1_latent[:, node_ind, :])
-    node_latent_pop2 = np.squeeze(pop2_latent[:, node_ind, :])
+    node_latent_pop1 = np.squeeze(pop_latent[:n_graphs, node_ind, :])
+    node_latent_pop2 = np.squeeze(pop_latent[n_graphs:, node_ind, :])
     u, v = k_sample_transform(
         node_latent_pop1, node_latent_pop2, is_y_categorical=False
     )
@@ -139,11 +142,11 @@ def node_wise_2_sample(node_ind):
 
 for node_ind in range(3):
     title = f"p-value: {node_wise_2_sample(node_ind):.3e}"
-    node_latent_pop1 = pop1_latent[:, node_ind, :]  # all graphs, one node, all dims
-    node_latent_pop2 = pop2_latent[:, node_ind, :]
+    node_latent_pop1 = pop_latent[:n_graphs, node_ind, :]
+    node_latent_pop2 = pop_latent[n_graphs:, node_ind, :]
     node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
     pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
-    # pairplot(node_latent, labels=pop_indicator, title=title, height=4)
+    pairplot(node_latent, labels=pop_indicator, title=title, height=4)
 
 #%%
 
@@ -157,14 +160,19 @@ indicator = np.zeros(n_verts, dtype=bool)
 indicator[0] = True
 plot_data["perturbed"] = indicator
 bonfer_thresh = 0.05 / n_verts
-g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40)
+
+#%%
+plt.figure(figsize=(20, 10))
+g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40, hue="perturbed")
+
 plt.yscale("log")
-plt.ylim([1e-6, 1])
+plt.ylim([1e-8, 1])
 plt.axhline(bonfer_thresh, c="r")
 plt.savefig(
     "./dos_and_donts/experiments/experiment_7/exp7_pvals.pdf",
     format="pdf",
     facecolor="w",
 )
+
 
 #%%
