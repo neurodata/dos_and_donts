@@ -18,7 +18,6 @@ from src.utils import n_to_labels
 sns.set_context("talk")
 plt.style.use("seaborn-white")
 sns.set_palette("deep")
-
 #%% [markdown]
 """
 pop 1 is a DC-SBM, 2 block, affinity the difference between it and pop 2 is that for
@@ -118,9 +117,8 @@ labels = np.concatenate((labels1, labels2), axis=0)
 plot_pop_latent = pop_latent.reshape((2 * n_graphs * n_verts, n_components))
 # plot_latents = np.concatenate((plot_pop1_latent, plot_pop2_latent), axis=0)
 pairplot(plot_pop_latent, labels=labels, alpha=0.3, height=4)
+
 #%% resampling
-test = DCorr
-# replication_factor = 10000000
 
 
 def sample_graph(latent):
@@ -151,9 +149,7 @@ def compute_pop_t_stats(pop_latent):
     return t_stats
 
 
-# def population_
-
-n_bootstraps = 5000
+n_bootstraps = 10000
 
 
 def bootstrap_population(pop_latent, seed):
@@ -169,7 +165,7 @@ def bootstrap_population(pop_latent, seed):
     return bootstrap_t_stats
 
 
-avg_latent = np.mean(pop_latent)
+avg_latent = np.mean(pop_latent, axis=0)
 
 
 def bsp(seed):
@@ -178,28 +174,32 @@ def bsp(seed):
 
 seeds = np.random.randint(1e8, size=n_bootstraps)
 out = Parallel(n_jobs=-2, verbose=5)(delayed(bsp)(seed) for seed in seeds)
-out = np.array(out)
+nulls = np.array(out).T
 print(out.shape)
 
-#%%
-warnings.filterwarnings("ignore")
-node_p_vals = []
-node_metas = []
+sample_t_stats = compute_pop_t_stats(pop_latent)
+node_p_vals = np.zeros(len(n_verts))
+for i, sample_t in enumerate(sample_t_stats):
+    num_greater = len(np.where(sample_t > nulls[i, :])[0])
+    p_val = num_greater / n_bootstraps
+    if p_val < 1 / n_bootstraps:
+        p_val = 1 / n_bootstraps
+    node_p_vals[i] = p_val
+
+# #%%
+# warnings.filterwarnings("ignore")
+# node_p_vals = []
+# node_metas = []
 
 
-for node_ind in range(3):
-    title = f"p-value: {node_wise_2_sample(node_ind):.3e}"
-    node_latent_pop1 = pop_latent[:n_graphs, node_ind, :]
-    node_latent_pop2 = pop_latent[n_graphs:, node_ind, :]
-    node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
-    pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
-    pairplot(node_latent, labels=pop_indicator, title=title, height=4)
+# for node_ind in range(3):
+#     title = f"p-value: {node_wise_2_sample(node_ind):.3e}"
+#     node_latent_pop1 = pop_latent[:n_graphs, node_ind, :]
+#     node_latent_pop2 = pop_latent[n_graphs:, node_ind, :]
+#     node_latent = np.concatenate((node_latent_pop1, node_latent_pop2), axis=0)
+#     pop_indicator = np.array(n_graphs * [0] + n_graphs * [1])
+#     pairplot(node_latent, labels=pop_indicator, title=title, height=4)
 
-#%%
-
-node_p_vals = Parallel(n_jobs=-2, verbose=5)(
-    delayed(node_wise_2_sample)(i) for i in range(n_verts)
-)
 plot_data = pd.DataFrame(columns=["p value", "node index", "perturbed"])
 plot_data["p value"] = node_p_vals
 plot_data["node index"] = list(range(n_verts))
@@ -208,7 +208,7 @@ indicator[0] = True
 plot_data["perturbed"] = indicator
 bonfer_thresh = 0.05 / n_verts
 
-#%%
+# #%%
 plt.figure(figsize=(20, 10))
 g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40, hue="perturbed")
 
@@ -222,4 +222,4 @@ plt.savefig(
 )
 
 
-#%%
+# #%%
