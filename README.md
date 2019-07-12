@@ -165,6 +165,45 @@ and blockwise multivariate log pvalues
 
 lesson: use multivariate stats as appropriate
 
+### sim 9
+
+given the 4 block model from TT PNAS paper, 
+cluster using LSE, 
+cluster using ASE, 
+find different answers.
+plot adjacency matrix sorted by each clustering approach
+
+what do we do instead? 
+HSBM?
+
+### sim 10
+
+for M subjects, for T time steps
+sample x_(m,t) ~ N(0,Sigma)
+have node 1 and 2 correlated, and 2 and 3 correlated, but not 1 and 3
+estimate correlation matrix
+
+y_m = gaussian noise + correlation of x_m(v1,v2)
+
+look at correlation between y_m and x_m(v1,v3)
+it will be high
+
+repeat the same, but replace correlation matrix with inverse correlation matrix,
+the correlation between y and inverse-correlation of x_m(v1,v3) will be small.
+
+lesson: use inverse correlation
+
+### sim 11
+
+something on time-varying connectomes:
+for each M subject, sample 10 timeseries from an AR process.
+compute dynamic connectomes
+for each coonnectome, compute discriminability and show that they are discriminable 
+even though generative process is random
+
+lesson: dynamic connectomes are nonsense
+
+
 ### fin
 
 
