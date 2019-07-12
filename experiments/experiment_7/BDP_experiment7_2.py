@@ -183,7 +183,7 @@ print(nulls.shape)
 sample_t_stats = compute_pop_t_stats(pop_latent)
 node_p_vals = np.zeros(n_verts)
 for i, sample_t in enumerate(sample_t_stats):
-    num_greater = len(np.where(sample_t > nulls[i, :])[0])
+    num_greater = len(np.where(sample_t < nulls[i, :])[0])
     p_val = num_greater / n_bootstraps
     if p_val < 1 / n_bootstraps:
         p_val = 1 / n_bootstraps
