@@ -79,3 +79,5 @@ def make_gif(graphs, df, name="visualization.gif"):
         fig, update, interval=100, frames=range(t.shape[0]), repeat=True
     )
     ani.save(name, writer="imagemagick", savefig_kwargs={"facecolor": "white"}, fps=16)
+
+    plt.close()
