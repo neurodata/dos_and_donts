@@ -5,7 +5,7 @@ import seaborn as sns
 
 ORDERING = dict(
     # num_edges = "# Edges",
-    density="density",
+    density="Density",
     # total_triangles = '# Triangles',
     triangle_ratio="Triangle Ratio",
     is_planar="Is Planar Graph?",
@@ -30,10 +30,11 @@ def hexbin(
     gridsize=40,
     cmap="Blues",
     bins="log",
+    title=None,
     savefig=None,
 ):
     ncols = 3
-    nrows = np.ceil(len(ordering) / ncols)
+    nrows = int(np.ceil(len(ordering) / ncols))
 
     fig, ax = plt.subplots(ncols=ncols, nrows=nrows, figsize=figsize, sharex=True)
     ax = ax.ravel()
@@ -53,7 +54,12 @@ def hexbin(
         for i in range(1, len(ax) - len(ordering) + 1):
             fig.delaxes(ax[-i])
 
+    if title is not None:
+        ax[1].set_title(title, fontsize=30)
+
     fig.tight_layout()
 
     if savefig is not None:
         fig.savefig(f"{savefig}.png", dpi=300)
+
+    plt.close()
