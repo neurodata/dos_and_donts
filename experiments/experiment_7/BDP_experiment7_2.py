@@ -149,7 +149,8 @@ def compute_pop_t_stats(pop_latent):
     return t_stats
 
 
-n_bootstraps = 10000
+n_bootstraps = 100
+print(f"Running {n_bootstraps} bootstraps")
 
 
 def bootstrap_population(latent, n_graphs, seed):
@@ -173,7 +174,7 @@ def bsp(seed):
 
 
 seeds = np.random.randint(1e8, size=n_bootstraps)
-out = Parallel(n_jobs=-2, verbose=5)(delayed(bsp)(seed) for seed in seeds)
+out = Parallel(n_jobs=-2, verbose=10)(delayed(bsp)(seed) for seed in seeds)
 nulls = np.array(out).T
 print(out.shape)
 
