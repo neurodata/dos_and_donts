@@ -151,7 +151,7 @@ def compute_pop_t_stats(pop_latent):
     return t_stats
 
 
-n_bootstraps = 100
+n_bootstraps = 10000
 print(f"Running {n_bootstraps} bootstraps")
 
 
