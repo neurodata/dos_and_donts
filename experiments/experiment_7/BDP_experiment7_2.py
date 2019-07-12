@@ -149,7 +149,7 @@ def compute_pop_t_stats(pop_latent):
     return t_stats
 
 
-n_bootstraps = 100
+n_bootstraps = 10000
 print(f"Running {n_bootstraps} bootstraps")
 
 
@@ -179,7 +179,7 @@ nulls = np.array(out).T
 print(nulls.shape)
 
 sample_t_stats = compute_pop_t_stats(pop_latent)
-node_p_vals = np.zeros(len(n_verts))
+node_p_vals = np.zeros(n_verts)
 for i, sample_t in enumerate(sample_t_stats):
     num_greater = len(np.where(sample_t > nulls[i, :])[0])
     p_val = num_greater / n_bootstraps
@@ -187,7 +187,7 @@ for i, sample_t in enumerate(sample_t_stats):
         p_val = 1 / n_bootstraps
     node_p_vals[i] = p_val
 
-# #%%
+#%%
 # warnings.filterwarnings("ignore")
 # node_p_vals = []
 # node_metas = []
@@ -209,7 +209,8 @@ indicator[0] = True
 plot_data["perturbed"] = indicator
 bonfer_thresh = 0.05 / n_verts
 
-# #%%
+#%%
+plt.style.use("seaborn-white")
 plt.figure(figsize=(20, 10))
 g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40, hue="perturbed")
 
@@ -217,7 +218,7 @@ plt.yscale("log")
 plt.ylim([1e-8, 1])
 plt.axhline(bonfer_thresh, c="r")
 plt.savefig(
-    "./dos_and_donts/experiments/experiment_7/exp7_pvals.pdf",
+    "./dos_and_donts/experiments/experiment_7/exp7_pvals_bootstrap.pdf",
     format="pdf",
     facecolor="w",
 )
