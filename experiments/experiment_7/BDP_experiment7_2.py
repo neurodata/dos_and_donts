@@ -1,17 +1,19 @@
 #%%
 import warnings
+from os.path import basename
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from joblib import Parallel, delayed
 from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.dcorr import DCorr
-import pandas as pd
 
 from graspy.embed import OmnibusEmbed
 from graspy.plot import heatmap, pairplot
-from graspy.simulations import sample_edges, sbm, p_from_latent
+from graspy.simulations import p_from_latent, sample_edges, sbm
 from graspy.utils import cartprod
 from src.utils import n_to_labels
 
@@ -217,11 +219,10 @@ g = sns.scatterplot(data=plot_data, x="node index", y="p value", s=40, hue="pert
 plt.yscale("log")
 plt.ylim([1e-8, 1])
 plt.axhline(bonfer_thresh, c="r")
-plt.savefig(
-    "./dos_and_donts/experiments/experiment_7/exp7_pvals_bootstrap.pdf",
-    format="pdf",
-    facecolor="w",
-)
+
+folderpath = Path(__file__.replace(basename(__file__), ""))
+# savepath = folderpath / "outputs"
+plt.savefig(folderpath / "exp7_pvals_bootstrap.pdf", format="pdf", facecolor="w")
 
 
 # #%%
