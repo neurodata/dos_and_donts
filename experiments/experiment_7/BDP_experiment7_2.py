@@ -234,7 +234,7 @@ if savefig:
 
 #%% Bootstrapping
 
-n_bootstraps = 10
+n_bootstraps = 10000
 print(f"Running {n_bootstraps} bootstraps")
 
 
