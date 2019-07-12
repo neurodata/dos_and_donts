@@ -152,10 +152,10 @@ def compute_pop_t_stats(pop_latent):
 n_bootstraps = 10000
 
 
-def bootstrap_population(pop_latent, seed):
+def bootstrap_population(latent, n_graphs, seed):
     np.random.seed(seed)
     bootstrapped_graphs = []
-    for latent in pop_latent:
+    for g in range(n_graphs):
         graph = sample_graph(latent)
         bootstrapped_graphs.append(graph)
 
@@ -169,7 +169,7 @@ avg_latent = np.mean(pop_latent, axis=0)
 
 
 def bsp(seed):
-    return bootstrap_population(avg_latent, seed)
+    return bootstrap_population(avg_latent, n_graphs * 2, seed)
 
 
 seeds = np.random.randint(1e8, size=n_bootstraps)
@@ -223,3 +223,6 @@ plt.savefig(
 
 
 # #%%
+
+
+#%%
