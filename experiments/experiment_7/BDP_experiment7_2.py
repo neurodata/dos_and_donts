@@ -176,7 +176,7 @@ def bsp(seed):
 seeds = np.random.randint(1e8, size=n_bootstraps)
 out = Parallel(n_jobs=-2, verbose=10)(delayed(bsp)(seed) for seed in seeds)
 nulls = np.array(out).T
-print(out.shape)
+print(nulls.shape)
 
 sample_t_stats = compute_pop_t_stats(pop_latent)
 node_p_vals = np.zeros(len(n_verts))
