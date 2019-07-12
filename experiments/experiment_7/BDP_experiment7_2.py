@@ -151,7 +151,7 @@ def compute_pop_t_stats(pop_latent):
     return t_stats
 
 
-n_bootstraps = 10000
+n_bootstraps = 100
 print(f"Running {n_bootstraps} bootstraps")
 
 
@@ -221,7 +221,7 @@ plt.ylim([1e-8, 1])
 plt.axhline(bonfer_thresh, c="r")
 
 folderpath = Path(__file__.replace(basename(__file__), ""))
-# savepath = folderpath / "outputs"
+plot_data.to_csv(folderpath / "exp7_pvals_bootstrap.csv")
 plt.savefig(folderpath / "exp7_pvals_bootstrap.pdf", format="pdf", facecolor="w")
 
 
