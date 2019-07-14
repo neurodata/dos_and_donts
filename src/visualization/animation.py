@@ -68,15 +68,14 @@ def make_gif(graphs, df, name="visualization.gif"):
     def update(i):
         ax.clear()
 
-        idx = indices[i]
-        g = graphs_subset[idx]
-        data = t.loc[idx]
+        g = graphs_subset[i]
+        data = t.loc[indices[i]]
 
         make_frame(g, data, ax)
-        # plt.tight_layout()
+        plt.tight_layout()
 
     ani = FuncAnimation(
-        fig, update, interval=100, frames=range(t.shape[0]), repeat=True
+        fig, update, interval=100, frames=range(df.shape[0]), repeat=True
     )
     ani.save(name, writer="imagemagick", savefig_kwargs={"facecolor": "white"}, fps=16)
 
