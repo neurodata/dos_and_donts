@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# set -ex
+# Data is from: http://users.cecs.anu.edu.au/~bdm/data/graphs.html
 
 mkdir -p ./data
 cd ./data
