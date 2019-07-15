@@ -25,17 +25,20 @@ Let P2(u,v) = P1(u,v) + delta if P1(u,v) < 0.5 or
 
 for k iterations:
 1. sample m IE graphs from P1 and also m from P2.
-2. run t-test independently on each potential edge.
-also run wilcoxon on each potential edge,
+2. on each edge, run a T-test, Mann Whitney U Test, and Fisher's exact test.
 
-say m = 100, for simplicity
-say n = 100, for simplicity
-
-plot power versus the elements of P1
+make the following plots:
+1. Power versus the elements of P1
+2. Type 1 Error versus the elements of P2
 
 lesson 1: don't use t-test, for binary graphs use wilcoxon.
 
-[Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-power.ipynb)
+[Demonstration Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-power.ipynb) | 
+[Power Simulation](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/simulation_power.py) | 
+[Type 1 Error Simulation](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/simulation_type1.py) | 
+[Simulation Results](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-plotting.ipynb)
+
+
 
 #### Power
 ![Power](./experiments/experiment_1/power.png)
