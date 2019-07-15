@@ -109,6 +109,7 @@ plot a 2D layout of m different graphs with the exact same modularity.
 
 lesson 5: don't use single graph metrics, they aren't that informative
 
+![gif](./experiments/experiment_5/figures/gifs/j1c-n-33.gif)
 
 ### simulation 6
 
@@ -125,6 +126,16 @@ or rho > eps, so they look correlated.
 lesson 6: when any given metric is correlated with y, so are many other metrics, 
 so making up a story that a particular property of the brain "explains" a given phenotypic property of a person is spurious reasoning.
 
+#### All graphs
+![all graphs](./experiments/experiment_5/figures/j1c-all-graphs-hexbin.png)
+
+#### Thresholding
+
+![10 thresh](./experiments/experiment_5/figures/norm_threshold/j1c_hexbin_10_base.png)
+
+![20 thresh](./experiments/experiment_5/figures/norm_threshold/j1c_hexbin_20_base.png)
+
+![31 thresh](./experiments/experiment_5/figures/norm_threshold/j1c_hexbin_31_base.png)
 
 ### simulation 7
 
