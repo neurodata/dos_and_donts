@@ -35,6 +35,14 @@ plot power versus the elements of P1
 
 lesson 1: don't use t-test, for binary graphs use wilcoxon.
 
+[Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-power.ipynb)
+
+#### Power
+![Power](./experiments/experiment_1/power.png)
+
+#### Type 1 Error
+![Type1 error](./experiments/experiment_1/type1.png)
+
 
 ### simulation 2
 
@@ -144,7 +152,11 @@ essentially, this should look like the edge-wise p-value map "smoothed" by verti
 
 lesson 7: model the nodes, not the edges
 
+#### Node wise p-values
+![Node wise p-values](./experiments/experiment_7/nodewise_p_vals.png)
 
+#### Edgewise p-values
+![Edge wise p-values](./experiments/experiment_7/edgewise_p_vals.png)
 
 ### simulation 8
 
@@ -164,6 +176,14 @@ and block wise (ignoring vertex alignment) log pvalues
 and blockwise multivariate log pvalues
 
 lesson: use multivariate stats as appropriate
+
+[Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_8/experiment_8.ipynb)
+
+#### Block wise Fisher's
+![Fishers](./experiments/experiment_8/8_7_2019/fisher_block.jpg)
+
+#### Block wise MGC
+![MGC](./experiments/experiment_8/8_7_2019/mgc_block.jpg)
 
 ### sim 9
 
