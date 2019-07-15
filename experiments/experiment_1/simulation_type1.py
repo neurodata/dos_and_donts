@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
         ie = IndependentEdge(sample_size=sample_size, n_vertices=10, epsilon=0, delta=0)
         pvals = ie.calculate_pvals(
-            scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact], n_iter=1000 
+            scipy_methods=[ttest_ind, mannwhitneyu, fisher_exact], n_iter=1000
         )
         type1 = ie.calculate_proportion_positive(pvals)
 
