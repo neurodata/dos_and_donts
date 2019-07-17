@@ -25,15 +25,26 @@ Let P2(u,v) = P1(u,v) + delta if P1(u,v) < 0.5 or
 
 for k iterations:
 1. sample m IE graphs from P1 and also m from P2.
-2. run t-test independently on each potential edge.
-also run wilcoxon on each potential edge,
+2. on each edge, run a T-test, Mann Whitney U Test, and Fisher's exact test.
 
-say m = 100, for simplicity
-say n = 100, for simplicity
-
-plot power versus the elements of P1
+make the following plots:
+1. Power versus the elements of P1
+2. Type 1 Error versus the elements of P2
 
 lesson 1: don't use t-test, for binary graphs use wilcoxon.
+
+[Demonstration Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-power.ipynb) | 
+[Power Simulation](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/simulation_power.py) | 
+[Type 1 Error Simulation](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/simulation_type1.py) | 
+[Simulation Results](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-plotting.ipynb)
+
+
+
+#### Power
+![Power](./experiments/experiment_1/power.png)
+
+#### Type 1 Error
+![Type1 error](./experiments/experiment_1/type1.png)
 
 
 ### simulation 2
@@ -101,6 +112,7 @@ plot a 2D layout of m different graphs with the exact same modularity.
 
 lesson 5: don't use single graph metrics, they aren't that informative
 
+![gif](./experiments/experiment_5/figures/gifs/j1c-n-33.gif)
 
 ### simulation 6
 
@@ -117,6 +129,16 @@ or rho > eps, so they look correlated.
 lesson 6: when any given metric is correlated with y, so are many other metrics, 
 so making up a story that a particular property of the brain "explains" a given phenotypic property of a person is spurious reasoning.
 
+#### All graphs
+![all graphs](./experiments/experiment_5/figures/j1c-all-graphs-hexbin.png)
+
+#### Thresholding
+
+![10 thresh](./experiments/experiment_5/figures/norm_threshold/j1c_hexbin_10_base.png)
+
+![20 thresh](./experiments/experiment_5/figures/norm_threshold/j1c_hexbin_20_base.png)
+
+![31 thresh](./experiments/experiment_5/figures/norm_threshold/j1c_hexbin_31_base.png)
 
 ### simulation 7
 
@@ -144,7 +166,11 @@ essentially, this should look like the edge-wise p-value map "smoothed" by verti
 
 lesson 7: model the nodes, not the edges
 
+#### Node wise p-values
+![Node wise p-values](./experiments/experiment_7/nodewise_p_vals.png)
 
+#### Edgewise p-values
+![Edge wise p-values](./experiments/experiment_7/edgewise_p_vals.png)
 
 ### simulation 8
 
@@ -164,6 +190,53 @@ and block wise (ignoring vertex alignment) log pvalues
 and blockwise multivariate log pvalues
 
 lesson: use multivariate stats as appropriate
+
+[Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_8/experiment_8.ipynb)
+
+#### Block wise Fisher's
+![Fishers](./experiments/experiment_8/8_7_2019/fisher_block.jpg)
+
+#### Block wise MGC
+![MGC](./experiments/experiment_8/8_7_2019/mgc_block.jpg)
+
+### sim 9
+
+given the 4 block model from TT PNAS paper, 
+cluster using LSE, 
+cluster using ASE, 
+find different answers.
+plot adjacency matrix sorted by each clustering approach
+
+what do we do instead? 
+HSBM?
+
+### sim 10
+
+for M subjects, for T time steps
+sample x_(m,t) ~ N(0,Sigma)
+have node 1 and 2 correlated, and 2 and 3 correlated, but not 1 and 3
+estimate correlation matrix
+
+y_m = gaussian noise + correlation of x_m(v1,v2)
+
+look at correlation between y_m and x_m(v1,v3)
+it will be high
+
+repeat the same, but replace correlation matrix with inverse correlation matrix,
+the correlation between y and inverse-correlation of x_m(v1,v3) will be small.
+
+lesson: use inverse correlation
+
+### sim 11
+
+something on time-varying connectomes:
+for each M subject, sample 10 timeseries from an AR process.
+compute dynamic connectomes
+for each coonnectome, compute discriminability and show that they are discriminable 
+even though generative process is random
+
+lesson: dynamic connectomes are nonsense
+
 
 ### fin
 
