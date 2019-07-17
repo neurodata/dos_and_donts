@@ -194,13 +194,13 @@ lesson: use multivariate stats as appropriate
 [Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_8/experiment_8.ipynb)
 
 #### Edge wise T test
-![Ttest-edge](./experiments/experiment_8/notebook_images/edgewise.jpg)
+![Ttest-edge](./experiments/experiment_8/notebook_images/edgewise.png)
 
 #### Block wise T test
-![Ttest-block](./experiments/experiment_8/notebook_images/blockwise.jpg)
+![Ttest-block](./experiments/experiment_8/notebook_images/blockwise.png)
 
 #### Block wise MGC
-![MGC](./experiments/experiment_8/notebook_images/mgc_dcorr.jpg)
+![MGC](./experiments/experiment_8/notebook_images/mgc_dcorr.png)
 
 ### sim 9
 
