@@ -67,6 +67,6 @@ _,p02 = pearsonr(y,invcors_02)
 
 print('y vs invCorrelation(n0,n1) correlation: %.2f Pearson test p-value: %.2f' % (underlying_cor, p01))
 print('y vs invCorrelation(n0,n2) correlation: %.2f Pearson test p-value: %.2f' %(misleading_cor,p02))
-
+#http://www.tulane.edu/~PsycStat/dunlap/Psyc613/RI2.html
 
 #%%
