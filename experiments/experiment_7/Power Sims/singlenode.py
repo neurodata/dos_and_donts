@@ -127,7 +127,6 @@ for x in range(sims):
 
     sample_t_stats = compute_pop_t_stats(pop_latent)
     node_p_vals = np.zeros(n_verts)
-    alpha = 0.05 / n_verts
     for i, sample_t in enumerate(sample_t_stats):
         num_greater = len(np.where(sample_t < nulls[i, :])[0])
         p_val = num_greater / n_bootstraps
@@ -137,4 +136,3 @@ for x in range(sims):
     node1.append(node_p_vals[1])
 node1=pd.Series(node1, name="p_vals")
 sns.distplot(node1)
-plt.show()
