@@ -100,7 +100,7 @@ node_list = []
 n_bootstraps = 10
 verbose_parallel = 0
 verbose = False
-n_jobs = 40
+n_jobs = -2
 
 for x in range(sims):
     if verbose:
