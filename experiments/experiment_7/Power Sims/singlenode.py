@@ -74,7 +74,7 @@ def bootstrap_population(latent, n_graphs, seed):
 block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
 n_graphs = 10
 diff = 1
-sims = 25
+sims = 200
 verts_per_block = 20
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
@@ -83,7 +83,7 @@ index = []
 node1 = []
 
 for x in range(sims):
-    index.append(x+1)
+    print(f"Running simulation {x}")
 
     print("Generating graph populations")
     vertex_assignments = np.zeros(n_verts, dtype=int)
@@ -137,3 +137,4 @@ for x in range(sims):
     node1.append(node_p_vals[1])
 node1=pd.Series(node1, name="p_vals")
 sns.distplot(node1)
+plt.show()
