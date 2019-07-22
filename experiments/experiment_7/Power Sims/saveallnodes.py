@@ -140,4 +140,4 @@ for x in range(sims):
         temp.append(p_val)
     node_list.append(temp)
     temp = []
-pd.DataFrame(node_list).to_csv(savepath / "matrix.csv")
+pd.DataFrame(node_list).to_csv(savepath / f"null_m{n_graphs}_n{n_verts}_b{n_bootstraps}_s{sims}", header=None, index=None)
