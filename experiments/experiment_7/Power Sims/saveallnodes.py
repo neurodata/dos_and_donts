@@ -1,3 +1,5 @@
+from os.path import basename
+from pathlib import Path
 import matplotlib.pyplot as plt  
 import numpy as np   
 import pandas as pd  
@@ -18,6 +20,9 @@ plt.style.use("seaborn-white")
 sns.set_palette("deep")
 np.random.seed(88888)
 font_scale = 1.5   
+
+folderpath = Path(__file__.replace(basename(__file__), ""))
+savepath = folderpath / "outputs"
 
 def block_to_full(block_mat, inverse, shape):
     block_map = cartprod(inverse, inverse).T
@@ -135,4 +140,4 @@ for x in range(sims):
         temp.append(p_val)
     node_list.append(temp)
     temp = []
-print(node_list)
+pd.DataFrame(node_list).to_csv(savepath / "matrix.csv")
