@@ -100,6 +100,7 @@ node_list = []
 n_bootstraps = 10
 verbose_parallel = 0
 verbose = False
+n_jobs = 40
 
 for x in range(sims):
     if verbose:
@@ -144,7 +145,7 @@ for x in range(sims):
         return bootstrap_population(avg_latent, n_graphs * 2, seed)
 
     seeds = np.random.randint(1e8, size=n_bootstraps)
-    out = Parallel(n_jobs=-2, verbose=verbose)(delayed(bsp)(seed) for seed in seeds)
+    out = Parallel(n_jobs=n_jobs, verbose=verbose)(delayed(bsp)(seed) for seed in seeds)
     nulls = np.array(out).T
 
     sample_t_stats = compute_pop_t_stats(pop_latent)
