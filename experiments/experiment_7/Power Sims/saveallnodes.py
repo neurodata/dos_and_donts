@@ -8,7 +8,7 @@ from joblib import Parallel, delayed
 from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.dcorr import DCorr
 from scipy.stats import fisher_exact
-
+from tqdm import tqdm
 from graspy.embed import OmnibusEmbed
 from graspy.plot import heatmap, pairplot
 from graspy.simulations import p_from_latent, sample_edges
@@ -87,8 +87,7 @@ def bootstrap_population(latent, n_graphs, seed):
 block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
 n_graphs = 10
 diff = 1
-sims = 10
-verts_per_block = 20
+verts_per_block = 100
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
 node_labels = n_to_labels(n).astype(int)
@@ -97,12 +96,13 @@ node1 = []
 node_list = []
 
 # test settings
-n_bootstraps = 10
+sims = 200
+n_bootstraps = 10000
 verbose_parallel = 0
 verbose = False
 n_jobs = -2
 
-for x in range(sims):
+for x in tqdm(range(sims)):
     if verbose:
         print(f"Running simulation {x+1}")
 
@@ -159,7 +159,7 @@ for x in range(sims):
     temp = []
 
 pd.DataFrame(node_list).to_csv(
-    savepath / f"null_m{n_graphs}_n{n_verts}_b{n_bootstraps}_s{sims}",
+    savepath / f"null_m{n_graphs}_n{n_verts}_b{n_bootstraps}_s{sims}.csv",
     header=None,
     index=None,
 )
