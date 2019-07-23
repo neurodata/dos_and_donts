@@ -96,7 +96,7 @@ node1 = []
 node_list = []
 
 # test settings
-sims = 200
+sims = 400
 n_bootstraps = 10000
 verbose_parallel = 0
 verbose = False
