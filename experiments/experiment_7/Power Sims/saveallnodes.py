@@ -85,9 +85,9 @@ def bootstrap_population(latent, n_graphs, seed):
 # Simulation setting: 2 populations of 2-block DCSBMs
 
 block_p = np.array([[0.25, 0.05], [0.05, 0.15]])
-n_graphs = 8
+n_graphs = 4
 diff = 1
-verts_per_block = 100
+verts_per_block = 64
 n_verts = 2 * verts_per_block
 n = 2 * [verts_per_block]
 node_labels = n_to_labels(n).astype(int)
