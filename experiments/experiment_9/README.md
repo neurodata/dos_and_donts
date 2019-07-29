@@ -1,7 +1,10 @@
 # experiment_9
 This is a set of codes for test two-truths phenomenon using GraSPy.
 
-See also: GraSPy issue #149
+See also: GraSPy issue #149 
+
+          Priebe, C. E., Park, Y., Vogelstein, J. T., Conroy, J. M., Lyzinski, V., Tang, M., ... & Bridgeford, E. (2019). On a two-truths phenomenon in spectral graph clustering. Proceedings of the National Academy of Sciences, 116(13), 5995-6000.
+
 
 exp9.py: test two-truths phenomenon in Pycharm.
 
