@@ -32,7 +32,7 @@ connectomes = np.stack(connectomes,axis=2)
 y = np.array(y)
 
 mean_connectome = np.mean(connectomes,axis=2)
-heatmap(mean_connectome,title='Mean Connectome')
+heatmap(mean_connectome,title='Mean Correlation Connectome M=' + str(m) + ' T=' + str(t))
 
 #%%
 #Create feature vector which contains y and all connections
