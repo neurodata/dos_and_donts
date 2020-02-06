@@ -91,8 +91,9 @@ def compute_pr_at_k(pvalues, k, true_labels):
     precisions, recalls : array-like
         Computed precisions and recalls.
     """
-    labels = true_labels.reshape(-1, 1)
-    label_matrix = (labels @ labels.T) ^ 1
+    label_matrix = np.zeros((len(true_labels), len(true_labels)))
+    c1 = (true_labels == 0).sum()
+    label_matrix[:c1, :c1] = 1
 
     triu_idx = np.triu_indices_from(pvalues, k=1)
     labels_vec = label_matrix[triu_idx]
