@@ -26,16 +26,19 @@ def generate_binary_sbms(m, block_1, block_2, p, delta):
     -------
     pop1, pop2 : 3d-array with shape (m, n, n)
         Sampled undirected, binary graphs.
+    labels : 1d-array with shape (n,)
+        True community assignments.
     """
     total_n = block_1 + block_2
     n = [block_1, block_2]
-    p1 = [[p, p], [p, p]]
     p2 = [[p + delta, p], [p, p]]
 
     pop1 = np.array([er_np(total_n, p, directed=False) for _ in np.arange(m)])
     pop2 = np.array([sbm(n, p2, directed=False) for _ in np.arange(m)])
 
-    return pop1, pop2
+    labels = np.array([0] * block_1 + [1] * block_2)
+
+    return pop1, pop2, labels
 
 
 def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
@@ -62,6 +65,8 @@ def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
     -------
     pop1, pop2 : 3d-array with shape (m, n, n)
         Sampled undirected, binary graphs.
+    labels : 1d-array with shape (n,)
+        True community assignments.
     """
     # Parameters for er and sbm functions
     total_n = block_1 + block_2
@@ -101,5 +106,7 @@ def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
         )
         pop_2.append(sbm(n, p, directed=False, wt=wt_func, wtargs=wt_args_2))
 
-    return np.array(pop_1), np.array(pop_2)
+    labels = np.array([0] * block_1 + [1] * block_2)
+
+    return np.array(pop_1), np.array(pop_2), labels
 

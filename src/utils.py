@@ -72,19 +72,41 @@ def estimate_block_probabilities(X, Y, labels):
     return bhat_1, bhat_2
 
 
-def compute_pr_at_k(different_n, k, test_statistics):
-    n = test_statistics.shape[0]
-    labels = np.zeros((n, n))
-    labels[0:different_n, 0:different_n] = 1
+def compute_pr_at_k(pvalues, k, true_labels):
+    """
+    Computes precision and recall at various k. 
 
-    triu_idx = np.triu_indices_from(test_statistics, k=1)
-    test_statistics_ = np.abs(test_statistics[triu_idx])
-    labels_ = labels[triu_idx]
+    Parameters
+    ----------
+    pvalues : 2d-array like, shape (n, n)
+        P-values obtained from some test.
+    k : int or array-like
+        Values @k to compute precision and recall for. If list, compute P/R for
+        each value in list. Otherwise, it computes P/R from range(1, k+1).
+    true_labels : 1d-array with shape (n,)
+        True community assignments.
 
-    idx = np.argsort(test_statistics_)[::-1]
-    sorted_labels = labels_[idx]
+    Returns
+    -------
+    precisions, recalls : array-like
+        Computed precisions and recalls.
+    """
+    labels = true_labels.reshape(-1, 1)
+    label_matrix = (labels @ labels.T) ^ 1
 
-    precision_at_k = sorted_labels[:k].mean()
-    recall_at_k = sorted_labels[:k].sum() / sorted_labels.sum()
+    triu_idx = np.triu_indices_from(pvalues, k=1)
+    labels_vec = label_matrix[triu_idx]
+    pvals_vec = pvalues[triu_idx]
 
-    return precision_at_k, recall_at_k
+    idx = np.argsort(pvals_vec)
+    sorted_labels = labels_vec[idx]
+
+    if isinstance(k, int):
+        ks = range(1, k + 1)
+    else:
+        ks = k
+
+    precisions = [sorted_labels[:k].mean() for k in ks]
+    recalls = [sorted_labels[:k].sum() / sorted_labels.sum() for k in ks]
+
+    return precisions, recalls
