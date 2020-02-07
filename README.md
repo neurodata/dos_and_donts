@@ -14,37 +14,9 @@ The Plan
 --------
 ### simulation 1
 
-2 populations of IE graphs, each with probability matrix P_i
+Consider two populations of binary networks generated from two block stochastic block model (SBM) 20 nodes. One population has same connectivity probability for all nodes, and second population has first 5 nodes that have different connectivity probability. The difference of connectivity probability represents the effect size. For each edge, t-test is used to determine whether that edge is statistically significantly different between the two populations. 
 
-Let b be a vector of length n linearly increasing over the range [eps, 1-eps]
-
-Let P1 be a grid determined by P1, i.e. P1(1,1)=b(1), P1(1,2)=b(2), ...
-
-Let P2(u,v) = P1(u,v) + delta if P1(u,v) < 0.5 or
-    P2(u,v) = P1(u,v) - delta if P1(u,v) \geq 0.5
-
-for k iterations:
-1. sample m IE graphs from P1 and also m from P2.
-2. on each edge, run a T-test, Mann Whitney U Test, and Fisher's exact test.
-
-make the following plots:
-1. Power versus the elements of P1
-2. Type 1 Error versus the elements of P2
-
-lesson 1: don't use t-test, for binary graphs use wilcoxon.
-
-[Demonstration Notebook](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-power.ipynb) | 
-[Power Simulation](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/simulation_power.py) | 
-[Type 1 Error Simulation](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/simulation_type1.py) | 
-[Simulation Results](https://github.com/neurodata/dos_and_donts/blob/master/experiments/experiment_1/VG-experiment1-plotting.ipynb)
-
-
-
-#### Power
-![Power](./experiments/experiment_1/power.png)
-
-#### Type 1 Error
-![Type1 error](./experiments/experiment_1/type1.png)
+![final](./experiments/experiment_1/j1c/figures/20200206_power.png)
 
 
 ### simulation 2
