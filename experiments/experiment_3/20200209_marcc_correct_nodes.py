@@ -88,6 +88,9 @@ def run_experiment(m, block_1, block_2, p, delta, n_clusters, reps):
     # omni_powers = (omni_powers <= 0.05).mean(axis=0)[np.triu_indices(2)]
     # mase_powers = (mase_powers <= 0.05).mean(axis=0)[np.triu_indices(2)]
 
+    omni_powers = omni_powers.mean(axis=0)
+    mase_powers = mase_powers.mean(axis=0)
+
     to_append = [m, p, delta, *omni_powers, *mase_powers]
     return to_append
 

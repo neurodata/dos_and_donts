@@ -4,7 +4,7 @@
 #SBATCH --time=3-0:0:0
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=48
-#SBATCH --mem=750G
+#SBATCH --mem=1000G
 #SBATCH --partition=lrgmem
 #SBATCH --exclusive
 #SBATCH --mail-type=end
