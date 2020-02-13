@@ -96,6 +96,8 @@ def run_experiment(m, block_1, block_2, p, delta, n_clusters, reps):
 
 
 def main(task_index):
+    task_index= int(task_index)
+
     block_1 = 25  # different probability
     block_2 = 25
     n_clusters = 2
@@ -104,7 +106,7 @@ def main(task_index):
 
     spacing = 50
     deltas = np.linspace(0, 1 - p, spacing + 1)
-    ms = np.linspace(0, 500, spacing + 1)[1:]
+    ms = np.linspace(0, 250, spacing + 1)[1:]
 
     partial_func = partial(
         run_experiment,
