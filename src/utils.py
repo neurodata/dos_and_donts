@@ -126,3 +126,30 @@ def compute_pr_at_k(k, true_labels, test_statistics=None, pvalues=None):
     recalls = [sorted_labels[:k].sum() / sorted_labels.sum() for k in ks]
 
     return precisions, recalls
+
+
+def estimate_embeddings(X, Y, method, n_components, sample_space=False):
+    """
+    Parameters
+    ----------
+    method : str
+        Must be {'mase', 'omni'}
+    """
+    stacked = np.vstack([X, Y])
+
+    if method == "mase":
+        embedder = MultipleASE(n_components=n_components)
+        embeddings = embedder.fit_transform(stacked)
+
+        if sample_space:
+            embeddings = embedder.latent_left_ @ embedder.scores_
+    elif method == "omni":
+        embedder = OmnibusEmbed(n_components=n_components)
+        embeddings = embedder.fit_transform(stacked)
+
+        if not sample_space:
+            embeddings = embeddings.mean(axis=0)
+    else:
+        assert ValueError("Invalid embedding method")
+
+    return embeddings
