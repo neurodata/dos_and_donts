@@ -40,7 +40,7 @@ def run_experiment(m, block_1, block_2, p, delta, n_components, reps):
     mase_powers = (mase_corrects <= 0.05).mean(axis=0)
 
     to_append = [m, p, delta, *omni_powers, *mase_powers]
-    return
+    return to_append
 
 
 def main(task_index):
