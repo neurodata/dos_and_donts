@@ -238,4 +238,4 @@ def generate_truncnorm_sbms_with_communities(
 
     labels = np.array([0] * block_1 + [1] * block_2)
 
-    return pop_1, pop_2, labels
+    return np.array(pop_1), np.array(pop_2), labels
