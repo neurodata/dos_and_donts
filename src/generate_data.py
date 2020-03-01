@@ -134,7 +134,7 @@ def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
         wt_args_1 = (dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[0]),)
         wt_args_2 = [
             [
-                dict(a=a_2, b=b_2, loc=mean_2, scale=sd_1, random_state=seeds[1]),
+                dict(a=a_2, b=b_2, loc=mean_2, scale=sd_2, random_state=seeds[1]),
                 dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[2]),
             ],
             [
@@ -151,3 +151,91 @@ def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
     labels = np.array([0] * block_1 + [1] * block_2)
 
     return np.array(pop_1), np.array(pop_2), labels
+
+
+def generate_truncnorm_sbms_with_communities(
+    m, block_1, block_2, mean_1, mean_2, var_1, var_2, mean_delta, var_delta
+):
+    """
+    Function for generating two populations of undirected, weighted SBMs.
+    The weight function is truncated normal such that all values are in [-1, 1].
+    Population 1 is sampled with `mean_1` and `variance_1` for all blocks. Population 
+    2 is sampled with `mean_2` and `variance_2` for community 1, and with `mean_1` 
+    and `variance_1` for all other communities. This function is used for 
+    Dos and Don'ts experiments 2 and 4.
+
+    Parameters
+    ----------
+    m : int
+        Number of samples per population
+    block_1, block_2 : int
+        Number of vertices in community 1 and 2, respectively.
+    mean_1, mean_2 : float
+        Means of truncated normal for community 1 and 2, respectively.
+    var_1, var_2 : float
+        Variances of truncated normal for community 1 and 2, respectively.
+
+    Returns
+    -------
+    pop1, pop2 : 3d-array with shape (m, n, n)
+        Sampled undirected, binary graphs.
+    labels : 1d-array with shape (n,)
+        True community assignments.
+    """
+    # Parameters for er and sbm functions
+    n = [block_1, block_2]
+    p = [[1, 1], [1, 1]]
+    sd_1 = np.sqrt(var_1)
+    sd_2 = np.sqrt(var_2)
+    sd_delta = np.sqrt(var_1 + var_delta)
+
+    # deal with clip values
+    a_1 = (-1 - mean_1) / sd_1
+    b_1 = (1 - mean_1) / sd_1
+    a_2 = (-1 - mean_2) / sd_2
+    b_2 = (1 - mean_2) / sd_2
+    a_delta = (-1 - mean_1 + mean_delta) / sd_delta
+    b_delta = (1 - mean_1 + mean_delta) / sd_delta
+
+    pop_1 = []
+    pop_2 = []
+    for _ in range(m):
+        # seeds are needed for joblib and scipy random functions
+        # numpy random is not affected by joblib
+        seeds = np.random.randint(0, 2147483647, size=6)
+
+        wt_func = [[truncnorm.rvs, truncnorm.rvs], [truncnorm.rvs, truncnorm.rvs]]
+        # wt_args_1 = (dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[0]),)
+        wt_args_1 = [
+            [
+                dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[0]),
+                dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[1]),
+            ],
+            [
+                dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[1]),
+                dict(a=a_2, b=b_2, loc=mean_2, scale=sd_2, random_state=seeds[2]),
+            ],
+        ]
+        wt_args_2 = [
+            [
+                dict(
+                    a=a_delta,
+                    b=b_delta,
+                    loc=mean_1 + mean_delta,
+                    scale=sd_delta,
+                    random_state=seeds[3],
+                ),
+                dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[4]),
+            ],
+            [
+                dict(a=a_1, b=b_1, loc=mean_1, scale=sd_1, random_state=seeds[4]),
+                dict(a=a_2, b=b_2, loc=mean_2, scale=sd_2, random_state=seeds[5]),
+            ],
+        ]
+
+        pop_1.append(sbm(n, p, directed=False, wt=wt_func, wtargs=wt_args_1))
+        pop_2.append(sbm(n, p, directed=False, wt=wt_func, wtargs=wt_args_2))
+
+    labels = np.array([0] * block_1 + [1] * block_2)
+
+    return pop_1, pop_2, labels
