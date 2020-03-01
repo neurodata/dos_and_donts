@@ -8,7 +8,7 @@ def generate_binary_sbms(m, block_1, block_2, p, delta):
     Function for generating two populations of undirected, binary SBMs.
     Population 1 is sampled with same `p` for all blocks. Population 2 is 
     sampled with `p + delta` for community 1, and with `p` for all other 
-    communities. This function is used for Dos and Don'ts experiments 1 and 3.
+    communities. This function is used for Dos and Don'ts experiments 1.
 
     Parameters
     ----------
@@ -34,6 +34,48 @@ def generate_binary_sbms(m, block_1, block_2, p, delta):
     p2 = [[p + delta, p], [p, p]]
 
     pop1 = np.array([er_np(total_n, p, directed=False) for _ in np.arange(m)])
+    pop2 = np.array([sbm(n, p2, directed=False) for _ in np.arange(m)])
+
+    labels = np.array([0] * block_1 + [1] * block_2)
+
+    return pop1, pop2, labels
+
+
+def generate_binary_sbms_with_communities(m, block_1, block_2, p, q, delta):
+    """
+    Function for generating two populations of undirected, binary SBMs with 
+    clear community structure. Population 1 is sampled with same `p` for all 
+    blocks except block 2. Population 2 is sampled with `p + delta` for 
+    community 1, and with `p` for all other communities. This function is 
+    used for Dos and Don'ts experiments 3.
+
+    Parameters
+    ----------
+    m : int
+        Number of samples per population
+    block_1, block_2 : int
+        Number of vertices in community 1 and 2, respectively.
+    p : float
+        Block matrix, or connectivity matrix, that defines connection
+        probability within and across communities. 
+    q : float
+        Block matrix, or connectivity matrix, that defines connection
+        probability within and across communities. 
+    delta : float
+        The effect size for a community 1.
+
+    Returns
+    -------
+    pop1, pop2 : 3d-array with shape (m, n, n)
+        Sampled undirected, binary graphs.
+    labels : 1d-array with shape (n,)
+        True community assignments.
+    """
+    n = [block_1, block_2]
+    p1 = [[p, p], [p, q]]
+    p2 = [[p + delta, p], [p, q]]
+
+    pop1 = np.array([sbm(n, p1, directed=False) for _ in np.arange(m)])
     pop2 = np.array([sbm(n, p2, directed=False) for _ in np.arange(m)])
 
     labels = np.array([0] * block_1 + [1] * block_2)
@@ -109,4 +151,3 @@ def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
     labels = np.array([0] * block_1 + [1] * block_2)
 
     return np.array(pop_1), np.array(pop_2), labels
-
