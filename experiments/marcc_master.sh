@@ -2,7 +2,8 @@
 #SBATCH --job-name=dnd
 #SBATCH --time=1-0:0:0
 #SBATCH --ntasks-per-node=48	
-#SBATCH --mem=200G
+#SBATCH --mem=990G
+#SBATCH --array=0-9
 #SBATCH --partition=lrgmem
 #SBATCH --exclusive
 #SBATCH --mail-type=end
