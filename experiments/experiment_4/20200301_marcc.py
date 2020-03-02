@@ -8,6 +8,7 @@ from graspy.cluster import GaussianCluster
 from graspy.embed import MultipleASE, OmnibusEmbed
 from joblib import Parallel, delayed
 from scipy.stats import ks_2samp, mannwhitneyu, multiscale_graphcorr, ttest_ind
+from hyppo.ksample import KSample
 
 from src import generate_truncnorm_sbms_with_communities
 
@@ -160,7 +161,7 @@ def main(task_index):
     n_clusters = range(2, 11)
     ms = np.linspace(0, 250, spacing + 1)[1:].astype(int)
 
-    tests = [ks_2samp, mannwhitneyu, multiscale_graphcorr, ttest_ind]
+    tests = [ks_2samp, mannwhitneyu, KSample("Dcorr").test, ttest_ind]
 
     partial_func = partial(
         run_experiment,
