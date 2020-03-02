@@ -159,7 +159,7 @@ def main(task_index):
     var_2 = 1 / 2
     mean_delta = 0
     var_deltas = np.linspace(var_1, 3, spacing + 1)
-    reps = 100
+    reps = 50
     n_clusters = range(2, 11)
     ms = np.linspace(0, 250, spacing + 1)[1:].astype(int)
 
