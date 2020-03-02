@@ -49,6 +49,8 @@ def compute_statistic(tests, pop1, pop2):
     for idx, test in enumerate(tests):
         if test.__name__ == "multiscale_graphcorr":
             statistic, pval, _ = test(pop1, pop2, reps=250, is_twosamp=True)
+        elif test.__name__ == "test":
+            statistic, pval = test(pop1, pop2, reps=250)
         else:  # for other tests, do by edge
             statistic, pval = test(pop1, pop2)
         res[idx] = pval
