@@ -142,8 +142,8 @@ def estimate_embeddings(X, Y, method, n_components, sample_space=False):
         embeddings = embedder.fit_transform(stacked)
 
         if sample_space:
-            D, U = np.linalg.eig(embedder.scores_)
-            root_scores = U @ np.stack([np.diag(np.sqrt(diag)) for diag in D])
+            U, D, V = np.linalg.svd(embedder.scores_)
+            root_scores = U @ np.stack([np.diag(np.sqrt(diag)) for diag in D]) @ V
             embeddings = embedder.latent_left_ @ root_scores
     elif method == "omni":
         embedder = OmnibusEmbed(n_components=n_components)
