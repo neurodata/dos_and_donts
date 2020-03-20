@@ -91,8 +91,8 @@ def run_experiment(m, block_1, block_2, p, q, delta, n_clusters, reps):
                 else:
                     omni_res[i, k_idx, :] = (prec, recall)
 
-    omni_res = omni_res.nanmean(axis=0).reshape(-1)
-    mase_res = mase_res.nanmean(axis=0).reshape(-1)
+    omni_res = np.nanmean(omni_res, axis=0).reshape(-1)
+    mase_res = np.nanmean(mase_res, axis=0).reshape(-1)
 
     to_append = [m, p, q, delta, *omni_res, *mase_res]
     return to_append
