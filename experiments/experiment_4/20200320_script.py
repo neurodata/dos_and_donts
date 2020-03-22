@@ -69,7 +69,7 @@ def run_experiment(
         true_edges = (true_labels[:, None] + true_labels[None, :])[r, c]
 
         for method in ["mase", "omni"]:
-            embeddings = estimate_embeddings(pop1, pop2, method)
+            embeddings = estimate_embeddings(pop1, pop2, method, 2)
 
             for k_idx, k in enumerate(n_clusters):
                 predicted_labels = estimate_community(embeddings, k)
@@ -148,7 +148,7 @@ def main(task_index):
         mean_2=mean_2,
         var_1=var_1,
         var_2=var_2,
-        var_delta=var_delta
+        var_delta=var_delta,
         #mean_delta=mean_delta,
         n_clusters=n_clusters,
         reps=reps,
