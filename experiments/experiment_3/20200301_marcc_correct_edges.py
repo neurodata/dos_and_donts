@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 from functools import partial
 from itertools import product
+import warnings
+warnings.simplefilter("ignore")
 
 import numpy as np
 import pandas as pd
@@ -60,7 +62,7 @@ def run_experiment(m, block_1, block_2, p, q, delta, n_clusters, reps):
         pop2_edges = pop2[:, r, c]
         true_edges = (true_labels[:, None] + true_labels[None, :])[r, c]
 
-        for method in ["mase", "omni"]:
+        for method in ["omni", "mase"]:
             embeddings = estimate_embeddings(pop1, pop2, method)
 
             for k_idx, k in enumerate(n_clusters):
@@ -89,8 +91,8 @@ def run_experiment(m, block_1, block_2, p, q, delta, n_clusters, reps):
                 else:
                     omni_res[i, k_idx, :] = (prec, recall)
 
-    omni_res = omni_res.mean(axis=0).reshape(-1)
-    mase_res = mase_res.mean(axis=0).reshape(-1)
+    omni_res = np.nanmean(omni_res, axis=0).reshape(-1)
+    mase_res = np.nanmean(mase_res, axis=0).reshape(-1)
 
     to_append = [m, p, q, delta, *omni_res, *mase_res]
     return to_append
@@ -101,7 +103,7 @@ def main(task_index):
 
     block_1 = 25  # different probability
     block_2 = 25
-    n_clusters = range(2, 11)
+    n_clusters = range(2, 6)
     p = 0.5
     q = 0.25
     reps = 100
@@ -147,6 +149,7 @@ def main(task_index):
 
 
 if __name__ == "__main__":
+    warnings.simplefilter("ignore")
     parser = ArgumentParser(description="This is a script for running experiments.")
     parser.add_argument("task_index", help="SLURM task index")
 
