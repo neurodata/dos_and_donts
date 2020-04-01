@@ -83,7 +83,9 @@ def generate_binary_sbms_with_communities(m, block_1, block_2, p, q, delta):
     return pop1, pop2, labels
 
 
-def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
+def generate_truncnorm_sbms(
+    m, block_1, block_2, mean_1, mean_2, var_1, var_2, a=-1, b=1
+):
     """
     Function for generating two populations of undirected, weighted SBMs.
     The weight function is truncated normal such that all values are in [-1, 1].
@@ -118,10 +120,10 @@ def generate_truncnorm_sbms(m, block_1, block_2, mean_1, mean_2, var_1, var_2):
     sd_2 = np.sqrt(var_2)
 
     # deal with clip values
-    a_1 = (-1 - mean_1) / sd_1
-    b_1 = (1 - mean_1) / sd_1
-    a_2 = (-1 - mean_2) / sd_2
-    b_2 = (1 - mean_2) / sd_2
+    a_1 = (a - mean_1) / sd_1
+    b_1 = (b - mean_1) / sd_1
+    a_2 = (a - mean_2) / sd_2
+    b_2 = (b - mean_2) / sd_2
 
     pop_1 = []
     pop_2 = []
