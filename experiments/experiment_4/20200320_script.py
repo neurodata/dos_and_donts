@@ -131,7 +131,7 @@ def main(task_index):
     mean_2 = 0
     var_1 = 1 / 2
     var_2 = 1 / 2
-    mean_deltas = np.linspace(mean_1, 1 - mean_1, spacing + 1)
+    mean_deltas = np.linspace(0, 1 - mean_1, spacing + 1)
     #var_deltas = np.linspace(var_1, 3, spacing + 1)
     var_delta = 0
     reps = 50
