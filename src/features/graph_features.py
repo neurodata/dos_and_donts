@@ -12,6 +12,10 @@ def is_planar(graph):
     return nx.check_planarity(graph)[0]
 
 
+def is_connected(graph):
+    return nx.is_connected(graph)
+
+
 def total_triangles(graph):
     return np.sum(list(nx.triangles(graph).values()))
 
