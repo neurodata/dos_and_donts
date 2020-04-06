@@ -129,13 +129,13 @@ def main(task_index):
     block_2 = 25
     mean_1 = 0
     mean_2 = 0
-    var_1 = 1 / 2
-    var_2 = 1 / 2
-    mean_deltas = np.linspace(0, 1 - mean_1, spacing + 1)
+    var_1 = 0.25
+    var_2 = 0.25
+    mean_deltas = np.linspace(0, 1 , spacing + 1)
     #var_deltas = np.linspace(var_1, 3, spacing + 1)
     var_delta = 0
     reps = 50
-    n_clusters = range(2, 5)
+    n_clusters = [2]
     ms = np.linspace(0, 250, spacing + 1)[1:].astype(int)
 
     tests = [ks_2samp, mannwhitneyu, ttest_ind]
