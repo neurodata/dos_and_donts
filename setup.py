@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 REQUIRED_PACKAGES = [
-    "networkx=2.3",
+    "networkx==2.3",
     "numpy>=1.8.1",
     "scikit-learn>=0.19.1",
     "scipy>=1.1.0",

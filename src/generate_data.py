@@ -196,8 +196,8 @@ def generate_truncnorm_sbms_with_communities(
     b_1 = (1 - mean_1) / sd_1
     a_2 = (-1 - mean_2) / sd_2
     b_2 = (1 - mean_2) / sd_2
-    a_delta = (-1 - mean_1 + mean_delta) / sd_delta
-    b_delta = (1 - mean_1 + mean_delta) / sd_delta
+    a_delta = (-1 - mean_1 - mean_delta) / sd_delta
+    b_delta = (1 - mean_1 - mean_delta) / sd_delta
 
     pop_1 = []
     pop_2 = []
