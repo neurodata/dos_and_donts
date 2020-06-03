@@ -64,19 +64,30 @@ where
 - $m=$ number of graphs
 ]
 
-Want to know
+Assume:
+- Same number of vertices
+- Vertex correspondence
+
+--
+
+Want to know which vertex $i\in [n]$ is significantly different?
+
 ---
 ### Testing procedure
-- .small[Let $\lbrace\hat{X}^{(g)}\rbrace_{g=1}^m $ be estimated latent positions corresponding to population 1]
-- .small[Let $\lbrace\hat{Y}^{(g)}\rbrace_{g=1}^m $ be estimated latent positions corresponding to population 2]
+<!-- - .small[Let $\lbrace\hat{X}^{(g)}\rbrace_{g=1}^m $ be estimated latent positions corresponding to population 1]
+- .small[Let $\lbrace\hat{Y}^{(g)}\rbrace_{g=1}^m $ be estimated latent positions corresponding to population 2] -->
 
-1. Jointly estimate latent positions into $d$ dimensions
-    - $\text{OMNI}(\mathbf{A}^{(1)}, \ldots, \mathbf{A}^{(m)}, \mathbf{B}^{(1)}, \ldots, \mathbf{B}^{(m)})$
-    - $\text{MASE}(\mathbf{A}^{(1)}, \ldots, \mathbf{A}^{(m)}, \mathbf{B}^{(1)}, \ldots, \mathbf{B}^{(m)})$
-
+1. Choose a representation of vertices
+    - Rows of adjacency matrices
+    - Estimated latent positions
+        - $\text{OMNI}(\mathbf{A}^{(1)}, \ldots, \mathbf{A}^{(m)}, \mathbf{B}^{(1)}, \ldots, \mathbf{B}^{(m)})$
+        - $\text{MASE}(\mathbf{A}^{(1)}, \ldots, \mathbf{A}^{(m)}, \mathbf{B}^{(1)}, \ldots, \mathbf{B}^{(m)})$
 2. For each vertex $i$, test using 2-sample distance correlation
-$$\text{DCorr}(\lbrack \hat{X}^{(1)}_i | \cdots | \hat{X}^{(m)}_i\rbrack^T, \lbrack \hat{Y}^{(1)}_i | \cdots | \hat{Y}^{(m)}_i\rbrack^T)$$
 
+    $$\text{DCorr}(\lbrack \mathbf{A}^{(1)}_i | \cdots | \mathbf{A}^{(m)}_i\rbrack^T, \lbrack \mathbf{B}^{(1)}_i | \cdots |
+\mathbf{B}^{(m)}_i\rbrack^T)$$
+
+    $$\text{DCorr}(\lbrack \hat{X}^{(1)}_i | \cdots | \hat{X}^{(m)}_i\rbrack^T, \lbrack \hat{Y}^{(1)}_i | \cdots | \hat{Y}^{(m)}_i\rbrack^T)$$
 3. Any vertex $i$ with $p_i \leq \alpha$ are signficantly different. 
 ---
 
