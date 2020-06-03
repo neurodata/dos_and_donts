@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>vertex</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="fonts/quadon/quadon.css">
+    <link rel="stylesheet" href="fonts/gentona/gentona.css">
+    <link rel="stylesheet" href="slides_style.css">
+    <script type="text/javascript" src="assets/plotly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+    <textarea id="source">
+
+
+name:opening
+
+## Vertex Wise Testing for Populations of Graphs
+
+<img src="images/neurodata_purple.png" style="height:250px; float:left;"/>
+
+
+<br><br><br><br><br><br><br><br><br>
+
+
+---
+
+### Nonparametric two-sample test
+
+Given $\lbrace X\_i \rbrace\_{i=1}^n \overset{\text{i.i.d}}{\sim} F\_X$ and $\lbrace Y\_j \rbrace\_{j=1}^m \overset{\text{i.i.d}}{\sim} F\_Y$, we want to test
+<!-- \\[
+\begin{array}{cc}
+H\_0: & F\_{X\_i} = F\_{Y\_i} \\\
+H\_A: & F\_{X\_i} \neq F\_{Y\_i} \\\
+\end{array}
+\\] -->
+
+\\[
+\begin{array}{cc}
+H\_0: & F\_{X} = F\_{Y} \\\
+H\_A: & F\_{X} \neq F\_{Y} \\\
+\end{array}
+\\]
+
+
+--
+
+In our case, $\lbrace X\_i \rbrace\_{i=1}^n$ and $\lbrace Y\_j \rbrace\_{j=1}^m$ are some choice of representation of a vertex.
+- rows of adjacency matrix
+- estimated latent positions
+
+---
+### Setting
+Two populations of graphs:
+1. $\lbrace\mathbf{A}^{(g)}\rbrace_{g=1}^m \overset{\text{i.i.d}}{\sim} F\_X$
+2. $\lbrace\mathbf{B}^{(g)}\rbrace_{g=1}^m\\overset{\text{i.i.d}}{\sim} F\_Y$
+
+<!-- $\lbrace\hat{X}^{(g)}\rbrace_{g=1}^m\in\mathbb{R}^{n\times d}$ -->
+.small[
+where
+- $\mathbf{A}^{(g)}, \mathbf{B}^{(g)}\in\mathbb{R}^{n\times n}$
+- $n=$ number of vertices
+- $m=$ number of graphs
+]
+
+Want to know
+---
+### Testing procedure
+- .small[Let $\lbrace\hat{X}^{(g)}\rbrace_{g=1}^m $ be estimated latent positions corresponding to population 1]
+- .small[Let $\lbrace\hat{Y}^{(g)}\rbrace_{g=1}^m $ be estimated latent positions corresponding to population 2]
+
+1. Jointly estimate latent positions into $d$ dimensions
+    - $\text{OMNI}(\mathbf{A}^{(1)}, \ldots, \mathbf{A}^{(m)}, \mathbf{B}^{(1)}, \ldots, \mathbf{B}^{(m)})$
+    - $\text{MASE}(\mathbf{A}^{(1)}, \ldots, \mathbf{A}^{(m)}, \mathbf{B}^{(1)}, \ldots, \mathbf{B}^{(m)})$
+
+2. For each vertex $i$, test using 2-sample distance correlation
+$$\text{DCorr}(\lbrack \hat{X}^{(1)}_i | \cdots | \hat{X}^{(m)}_i\rbrack^T, \lbrack \hat{Y}^{(1)}_i | \cdots | \hat{Y}^{(m)}_i\rbrack^T)$$
+
+3. Any vertex $i$ with $p_i \leq \alpha$ are signficantly different. 
+---
+
+### Experimental Setting
+- 2 block SBM as RDPGs 
+    - $\vec{\pi} = [0.5, 0.5]^T$
+    - embedding dimension $d=2$
+- Latent positions for each population:
+1. .small[
+$
+\begin{aligned}
+X &=
+\begin{bmatrix}
+X_1\\\
+X_2
+\end{bmatrix}=
+\begin{bmatrix}
+0.25 & 0.25\\\
+-0.092 & 0.34
+\end{bmatrix}
+\end{aligned}
+$, 
+$
+\begin{aligned}
+P_1 &= XX^T =
+\begin{bmatrix}
+0.125 & 0.0625 \\\
+0.0625 & 0.125
+\end{bmatrix}
+\end{aligned}
+$]
+2. .small[
+$
+\begin{aligned}
+Y &=
+\begin{bmatrix}
+X_1\\\
+\tilde{X}_2
+\end{bmatrix}
+\end{aligned}
+$,
+$
+\begin{aligned}
+P_2 &= YY^T
+\end{aligned}
+$]
+
+where $\tilde{X}_2$ is a modified $X_2$ via changing magnitude and/or the angle from $X_1$. 
+
+---
+### Experimental Setting
+1. Given $n$, sample $m$ graphs from each SBM
+
+    $$
+    \lbrace A^{(g)}\rbrace\_{g=1}^m \sim\text{SBM}(P_1, n, \vec{\pi})
+    $$
+
+    $$
+    \lbrace B^{(g)}\rbrace\_{g=1}^m \sim\text{SBM}(P_2, n, \vec{\pi})
+    $$
+
+2. Estimate latent positions via OMNI and MASE
+
+For each vertex,
+3. Compute 2-sample distance correlation on the latent positions
+4. Compute probability of rejecting the null
+
+Measure
+1. Average probability of rejecting the null per block
+
+---
+### Simulation 1
+- Increase the magnitude of $X_2$
+
+.small[
+$
+\begin{aligned}
+X &=
+\begin{bmatrix}
+X_1\\\
+X_2
+\end{bmatrix}=
+\begin{bmatrix}
+0.25 & 0.25\\\
+-0.092 & 0.34
+\end{bmatrix}
+\end{aligned}
+$,
+$
+\begin{aligned}
+P_1 &= XX^T =
+\begin{bmatrix}
+0.125 & 0.0625 \\\
+0.0625 & 0.125
+\end{bmatrix}
+\end{aligned}
+$]
+
+.small[$
+\begin{aligned}
+Y &=
+\begin{bmatrix}
+X_1\\\
+(1+\delta) X_2
+\end{bmatrix}
+\end{aligned}
+$, 
+$
+\begin{aligned}
+P_2 &= YY^T =
+\begin{bmatrix}
+0.125 & (\sqrt{1+\delta})0.0625\\\
+(\sqrt{1+\delta})0.0625 & (1+\delta)0.125
+\end{bmatrix}
+\end{aligned}$]
+
+<img src="images/vertex/rdpg_latent_1.png" style="width:700px" class="center"/>
+
+
+---
+### Type I error increases with $\delta$
+
+<img src="images/vertex/rdpg_model_1.png" style="width:700px" class="center" />
+
+
+---
+
+### Means diverge as $\delta$ increases (OMNI)
+
+- Visualize $\frac{1}{m}\sum\_{g=1}^m\hat{X}\_i^{(g)}$ and $\frac{1}{m}\sum_{g=1}^m\hat{Y}\_i^{(g)}$
+
+<img src="images/vertex/generate_graphs_1_latent_positions.png" style="width:700px" class="center"/>
+
+- $n=100$, $m=50$
+- Circles = same true latent positions
+- Xs = different true latent positions
+
+---
+
+### Absolute differences in means
+
+- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
+
+- Expectation: circles at origin, Xs at not origin
+
+
+<img src="images/vertex/generate_graphs_1_latent_diffs.png" style="width:700px" class="center" />
+
+---
+
+### Simulation 2
+- Change the angle between $X_1$ and $X_2$.
+.small[
+$$
+\begin{aligned}
+P_1 &=
+\begin{bmatrix}
+0.125 & 0.0625 \\\
+0.0625 & 0.125
+\end{bmatrix}\\\
+P_2 &=
+\begin{bmatrix}
+0.125 & (\cos{60+\theta})0.125\\\
+(\cos{60+\theta})0.125 & 0.125
+\end{bmatrix}
+\end{aligned}
+$$]
+
+<img src="images/vertex/rdpg_latent_2.png" style="width:700px" class="center" />
+
+---
+### Type I error increases with $\delta$
+
+<img src="images/vertex/rdpg_model_2.png" style="width:700px" class="center" />
+
+---
+
+### Means diverge as $\theta$ increases (OMNI)
+
+- Visualize $\frac{1}{m}\sum\_{g=1}^m\hat{X}\_i^{(g)}$ and $\frac{1}{m}\sum_{g=1}^m\hat{Y}\_i^{(g)}$
+
+<img src="images/vertex/generate_graphs_2_latent_positions.png" style="width:700px" class="center" />
+
+- $n=100$, $m=50$
+- Circles = same true latent positions
+- Xs = different true latent positions
+
+---
+
+### Absolute differences in means
+
+- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
+
+- Expectation: circles at origin, Xs at not origin
+
+
+<img src="images/vertex/generate_graphs_2_latent_diffs.png" style="width:700px" class="center" />
+
+---
+### Simulation 3 
+- Change magnitude and angle so cross-block probability remains the same.
+
+$$
+\begin{aligned}
+P_1 =
+\begin{bmatrix}
+.125 & .0625\\\
+.0625 & .125
+\end{bmatrix},~
+P_2 =
+\begin{bmatrix}
+.125 & .0625\\\
+.0625 & .125 + \delta
+\end{bmatrix}
+\end{aligned}
+$$
+
+<img src="images/vertex/rdpg_latent_4.png" style="width:500px" class="center" />
+
+
+---
+### Type I error = $\alpha$ for row-wise and OMNI
+
+<img src="images/vertex/20200509_rdpg_angle_60.png" style="width:700px" class="center" />
+
+
+---
+
+### Means diverge as $\delta$ increases (OMNI)
+
+- Visualize $\frac{1}{m}\sum\_{g=1}^m\hat{X}\_i^{(g)}$ and $\frac{1}{m}\sum_{g=1}^m\hat{Y}\_i^{(g)}$
+
+<img src="images/vertex/generate_graphs_4_latent_positions.png" style="width:700px" class="center" />
+
+- $n=100$, $m=50$
+- Circles = same true latent positions
+- Xs = different true latent positions
+
+---
+
+### Absolute differences in means
+
+- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
+
+- Expectation: circles at origin, Xs at not origin
+
+
+<img src="images/vertex/generate_graphs_4_latent_diffs.png" style="width:700px" class="center" />
+
+---
+### Summary
+- Jointly embedding graphs leads to biased estimates
+- How to fix?
+
+---
+
+</textarea>
+
+    <!-- <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js"></script> -->
+    <script src="remark-latest.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"> -->
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css"
+        integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js"
+        integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js"
+        integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"
+        onload="renderMathInElement(document.body);"></script>
+    <script type="text/javascript">
+        var options = {};
+        var renderMath = function () {
+            // renderMathInElement(document.body);
+            // or if you want to use $...$ for math,
+            renderMathInElement(document.body, {
+                delimiters: [ // mind the order of delimiters(!?)
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\[", right: "\\]", display: true },
+                    { left: "\\(", right: "\\)", display: false },
+                ]
+            });
+        }
+        var slideshow = remark.create(options, renderMath);
+
+    </script>
+
+</body>
+
+</html>
