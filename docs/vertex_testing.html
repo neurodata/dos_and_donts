@@ -46,7 +46,7 @@ H\_A: & F\_{X} \neq F\_{Y} \\\
 
 --
 
-In our case, $\lbrace X\_i \rbrace\_{i=1}^n$ and $\lbrace Y\_j \rbrace\_{j=1}^m$ are some choice of representation of a vertex.
+In our case, $\lbrace X\_i \rbrace\_{i=1}^n$ and $\lbrace Y\_j \rbrace\_{j=1}^m$ are a representation of a vertex.
 - rows of adjacency matrix
 - estimated latent positions
 
@@ -68,9 +68,6 @@ Assume:
 - Same number of vertices
 - Vertex correspondence
 
---
-
-Want to know which vertex $i\in [n]$ is significantly different?
 
 ---
 ### Testing procedure
@@ -229,7 +226,7 @@ P_2 &= YY^T =
 
 ### Absolute differences in means
 
-- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
+- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \sum\_{j\in B\_i}\sum\_{g=1}^m\hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
 
 - Expectation: circles at origin, Xs at not origin
 
@@ -279,7 +276,8 @@ $$]
 
 ### Absolute differences in means
 
-- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
+- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \sum\_{j\in B\_i}\sum\_{g=1}^m\hat{Y\_j}^{(g)}
+\vert$ for $i \in [2]$
 
 - Expectation: circles at origin, Xs at not origin
 
@@ -329,7 +327,8 @@ $$
 
 ### Absolute differences in means
 
-- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \hat{Y\_j}^{(g)} \vert$ for $i \in [2]$
+- $\frac{2}{nm} \vert \sum\_{j\in B\_i}\sum\_{g=1}^m \hat{X\_j}^{(g)} - \sum\_{j\in B\_i}\sum\_{g=1}^m\hat{Y\_j}^{(g)}
+\vert$ for $i \in [2]$
 
 - Expectation: circles at origin, Xs at not origin
 
