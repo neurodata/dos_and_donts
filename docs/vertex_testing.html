@@ -313,7 +313,6 @@ $$
 
 <img src="images/vertex/20200509_rdpg_angle_60.png" style="width:700px" class="center" />
 
-
 ---
 
 ### Means diverge as $\delta$ increases (OMNI)
@@ -343,6 +342,31 @@ $$
 - How to fix?
 
 ---
+
+### Bootstrapped null
+.small[
+1. Compute mean latent positions: $\bar{Z}=\frac{1}{2m}\sum_{g=1}^m \hat{X}^{(g)} + \hat{Y}^{(g)}$
+1. Sample $\tilde{\mathbf{A}}^{(1)}, \ldots, \tilde{\mathbf{A}}^{(2m)} \sim \text{RDPG}(\bar{Z})$
+1. Estimate latent positions $\tilde{Z}$
+1. Compute DCorr for each vertex to obtain test statistic $T_i^b$ for $i\in[n]$
+2. Compute number of times bootstrapped test statistic is larger than observed test statistic: $p = \frac{1}{R}\sum_{b=1}^R \mathbb{I}(T_i^b \geq T_i)$
+]
+
+
+---
+
+### Simulation 1 
+- Changing magnitude
+
+<img src="images/vertex/20200520_rdpg_angle_generate_graphs_1.png" style="width:700px" class="center" />
+
+---
+
+### Simulation 3 
+- Changing magnitude and angle
+
+<img src="images/vertex/20200520_rdpg_angle_generate_graphs_4.png" style="width:700px" class="center" />
+
 
 </textarea>
 
