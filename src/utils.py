@@ -138,7 +138,7 @@ def estimate_embeddings(X, Y, method, n_components, sample_space=False):
     stacked = np.vstack([X, Y])
 
     if method == "mase":
-        embedder = MultipleASE(n_components=n_components, scaled=True)
+        embedder = MultipleASE(n_components=n_components, scaled=True, check_lcc=False)
         embeddings = embedder.fit_transform(stacked)
 
         if sample_space:
@@ -146,7 +146,7 @@ def estimate_embeddings(X, Y, method, n_components, sample_space=False):
             root_scores = U @ np.stack([np.diag(np.sqrt(diag)) for diag in D]) @ V
             embeddings = embedder.latent_left_ @ root_scores
     elif method == "omni":
-        embedder = OmnibusEmbed(n_components=n_components)
+        embedder = OmnibusEmbed(n_components=n_components, check_lcc=False)
         embeddings = embedder.fit_transform(stacked)
 
         if not sample_space:
