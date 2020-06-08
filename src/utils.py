@@ -138,7 +138,7 @@ def estimate_embeddings(X, Y, method, n_components, sample_space=False):
     stacked = np.vstack([X, Y])
 
     if method == "mase":
-        embedder = MultipleASE(n_components=n_components, scaled=True, check_lcc=False)
+        embedder = MultipleASE(n_components=n_components, scaled=True)
         embeddings = embedder.fit_transform(stacked)
 
         if sample_space:
