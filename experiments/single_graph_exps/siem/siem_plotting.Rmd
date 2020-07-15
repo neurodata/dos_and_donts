@@ -24,6 +24,8 @@ hmap.dat <- read.csv('./data/uwt_power_map.csv') %>%
    filter(Simulation != "nSBM")
 fixedn.dat <- hmap.dat %>%
   filter(n == 56)
+
+pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
 ```
 
 ## Sim Plots
@@ -36,7 +38,7 @@ uw.sim.plt <- ggplot(data=gr.dat, mapping=aes(x=Row, y=Column, fill=Weight)) +
    ylab("Vertex 2") + 
    scale_x_discrete(breaks=c(1, 50)) + 
    scale_y_discrete(breaks=c(1, 50), limits=rev(levels(gr.dat$Column))) +
-   scale_fill_manual(values=c(`0`="white", `1`="purple")) +
+   scale_fill_manual(values=c(`0`=pow.cols[1], `1`=pow.cols[length(pow.cols)])) +
    theme_bw() +
    ggtitle("(I) Simulations") +
    guides(fill="none")
@@ -51,7 +53,7 @@ uw.hmap.plt <- ggplot(data=hmap.dat, mapping=aes(x=n, y=Effect_Size, fill=power)
    facet_grid("Simulation ~ Test") + 
    xlab("Number of Vertices") + 
    ylab("Effect Size") + 
-   scale_fill_gradient(high="darkgreen", low="red", name="Power", breaks=c(0, .5, 1)) + 
+   scale_fill_gradientn(colors=pow.cols, name="Power", breaks=c(0, .5, 1)) + 
    scale_x_discrete(breaks=c(20, 100)) + 
    scale_y_discrete(breaks=c(0,1)) + 
    theme_bw() + 

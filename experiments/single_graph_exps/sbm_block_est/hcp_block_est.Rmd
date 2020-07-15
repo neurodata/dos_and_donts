@@ -1,0 +1,87 @@
+---
+title: "HCP Block Estimation"
+author: "Eric Bridgeford"
+date: "7/8/2020"
+output: html_document
+---
+
+```{r, message=FALSE}
+require(ggplot2)
+require(gridExtra)
+require(grid)
+require(tidyverse)
+require(kableExtra)
+require(gtable)
+```
+
+# Read and Preprocess the data
+
+```{r}
+read.graph <- function(fname, key) {
+  read.csv(fname, header=FALSE) %>%
+    `colnames<-`(1:70) %>%
+    `rownames<-`(1:70) %>%
+    mutate(Row = row_number()) %>%
+    pivot_longer(-Row, names_to="Column", values_to="Value") %>%
+    mutate(Column=as.numeric(Column)) %>%
+    mutate(block_id_row=ifelse(Row <= 35, 1, 2), block_id_col=ifelse(Column <= 35, 1, 2)) %>%
+    mutate(Block=sprintf("(%d,%d)", block_id_row, block_id_col)) %>%
+    mutate(Block=recode_factor(Block, '(1,1)'='Left', '(2,2)'='Right', '(1,2)'='Contralateral', '(2,1)'='contra_rl'),
+           ID=key)
+}
+
+dmri.graphs = do.call(rbind, lapply(list.files('/data/hcp/dmri/', pattern='.csv'), function(fname) {
+  sp.name = strsplit(fname, '_')[[1]]
+  key = paste(sp.name[1], sp.name[2], sep="_")
+  read.graph(paste0('/data/hcp/dmri/', fname), key)
+})) %>%
+  filter(Block != "contra_rl")
+  
+  
+test_results <- read.csv('./data/hcp_block_est.csv') %>%
+  mutate(pvalue=pvalue*n()) # bonferroni correction
+```
+
+## Block Plot
+
+```{r}
+line.cols <- c("Left"="blue", "Right"="red", "Contralateral"="darkgreen")
+block.edge.plt <- ggplot(dmri.graphs, aes(log(Value + .5), color=Block, group=ID)) +
+  geom_density(aes(y=..scaled.., group=ID), size=.02, alpha=.1) +
+  theme_bw() +
+  ylab("Relative Density") +
+  scale_color_manual(values=line.cols, name='Block') +
+  scale_x_continuous(breaks=c(0, 5, 10)) +
+  facet_grid('.~Block') +
+  xlab("log(Edge Weight + .5)") +
+  ggtitle("(I) Density Estimate of Edges within-block of K=2 SBM") +
+  guides(color=FALSE)
+```
+
+## Table
+
+```{r}
+tabl_results <- do.call(rbind, lapply(unique(test_results$Method), function(meth) {
+  test_results.meth.dat <- test_results %>% filter(Method == meth)
+  do.call(rbind, lapply(c("aaaa", "abba", "abbd"), function(cand) {
+    return(data.frame(Method=meth, Structure=cand, Percent=sum(test_results.meth.dat$Structure == cand & test_results.meth.dat$pvalue <= .05)))
+  }))
+})) %>%
+  pivot_wider(Method, names_from=Structure, values_from=Percent) %>%
+  mutate(Method = factor(Method)) %>%
+  mutate(Method=recode_factor(Method, "kw"="Kruskal-Wallis", "dcorr"="DCorr", "anova"="ANOVA")) %>%
+  rename("ER"="aaaa", "Sym. Hom."="abba", "Sym. Het."="abbd")
+```
+
+## Combine
+```{r}
+tabl <- tableGrob(tabl_results, rows=NULL)
+title <- textGrob("(II) Identified Block Structure", gp = gpar(fontsize = 14))
+padding <- unit(.5, 'line')
+tabl <- gtable_add_rows(tabl, heights=grobHeight(title) + padding, pos=0)
+tabl <- gtable_add_grob(
+  tabl, list(title), t=1, l=1, r=ncol(tabl)
+)
+
+grid.arrange(block.edge.plt, tabl, nrow=1, widths=c(.9, .4))
+```

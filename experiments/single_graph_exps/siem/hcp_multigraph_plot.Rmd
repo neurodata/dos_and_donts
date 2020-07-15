@@ -1,0 +1,99 @@
+---
+title: "HCP SIEM"
+author: "Eric Bridgeford"
+date: "7/14/2020"
+output: html_document
+---
+
+
+```{r, message=FALSE}
+require(ggplot2)
+require(gridExtra)
+require(grid)
+require(tidyverse)
+require(kableExtra)
+require(gtable)
+require(circlize)
+require(igraph)
+require(data.table)
+```
+
+# Read and Preprocess the data
+
+```{r}
+read.graph <- function(fname, key) {
+  read.csv(fname, header=FALSE) %>%
+    `colnames<-`(1:70) %>%
+    `rownames<-`(1:70) %>%
+    mutate(Row = row_number()) %>%
+    pivot_longer(-Row, names_to="Column", values_to="Value") %>%
+    mutate(Column=as.numeric(Column)) %>%
+    mutate(block_id_row=ifelse(Row <= 35, 1, 2), block_id_col=ifelse(Column <= 35, 1, 2)) %>%
+    mutate(Block=sprintf("(%d,%d)", block_id_row, block_id_col)) %>%
+    mutate(Block=recode_factor(Block, '(1,1)'='Within-Hemisphere', '(2,2)'='Within-Hemisphere', 
+                               '(1,2)'='Between-Hemisphere', '(2,1)'='contra_rl'),
+           ID=key)
+}
+
+avg.graphs = do.call(rbind, lapply(list.files('./data/', '_avg.csv'), function(fname) {
+  sp.name = strsplit(fname, '_')[[1]]
+  key = ifelse(sp.name[2] == 'dmri', 'dMRI', 'fMRI')
+  read.graph(paste0('./data/', fname), key)
+})) %>%
+  rename(Modality=ID) %>%
+  mutate(Row = factor(Row, levels=1:70, ordered=TRUE), Column = factor(Column, levels=1:70, ordered=TRUE))
+vertices <- data.frame(ID=1:70, color=c(rep("blue", 35), rep("red", 35)))
+
+
+dmri.graphs = do.call(rbind, lapply(list.files('/data/hcp/dmri/', pattern='.csv'), function(fname) {
+  sp.name = strsplit(fname, '_')[[1]]
+  key = paste(sp.name[1], sp.name[2], sep="_")
+  read.graph(paste0('/data/hcp/dmri/', fname), key)
+})) %>%
+  filter(Block != "contra_rl")
+
+test_results <- read.csv('./data/hcp_singlegraph_results.csv') %>%
+  mutate(p_val=p_val*n()) %>% # bonferroni correction
+  rename(pvalue=p_val)
+
+pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
+```
+
+# Plot Adjacency matrices
+
+700x700
+
+## dMRI
+
+```{r}
+dmri.avg.plot <- ggplot(data=avg.graphs %>% filter(Modality == "dMRI"), 
+                        mapping=aes(x=factor(Row), y=factor(Column), fill=log(Value + .05))) +
+   geom_tile() + 
+   xlab("Vertex") + 
+   ylab("Vertex") + 
+   scale_fill_gradientn(colors=pow.cols, name="log(Edge Weight + .05)") + 
+   scale_x_discrete(expand=c(0,0), breaks=c(1,70)) + 
+   scale_y_discrete(expand=c(0,0), breaks=c(1,70), limits=rev(levels(avg.graphs$Column))) + 
+   theme_bw() + 
+   ggtitle("(I) Average dMRI Connectome, N=1059")
+```
+
+# Plot Edge Densities per-graph
+
+```{r}
+line.cols <- c("Within-Hemisphere"="purple", "Between-Hemisphere"="darkgreen")
+block.edge.plt <- ggplot(dmri.graphs, aes(log(Value + .5), color=Block, group=ID)) +
+  geom_density(aes(y=..scaled.., group=ID), size=.02, alpha=.1) +
+  theme_bw() +
+  ylab("Relative Density") +
+  scale_color_manual(values=line.cols, name='Block') +
+  scale_x_continuous(breaks=c(0, 5, 10)) +
+  facet_grid('.~Block') +
+  xlab("log(Edge Weight + .5)") +
+  ggtitle("(II) Density Estimate of Homophilic Communities") +
+  guides(color=FALSE)
+```
+
+```{r}
+grid.arrange(dmri.avg.plot, block.edge.plt, nrow=1, widths=c(.5, 1))
+```
