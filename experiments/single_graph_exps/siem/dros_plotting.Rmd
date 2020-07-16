@@ -21,8 +21,15 @@ require(data.table)
 
 ```{r}
 dros.gr <- read_csv('./data/dros_edges.csv') %>%
-  mutate(Homophilic=factor(ifelse(Homophilic == 1, "Within-Hemisphere", "Between-Hemisphere")),
-         Homotopic=factor(ifelse(Homotopic == 1, "Homotopic", "Heterotopic")))
+  mutate(Homophilic=factor(ifelse(Homophilic == 1, "Within-Hemisphere", "Between-Hemisphere"), 
+                           levels=c("Within-Hemisphere", "Between-Hemisphere"), ordered=TRUE),
+         Homotopic=factor(ifelse(Homotopic == 1, "Homotopic", "Heterotopic"), 
+                          levels=c("Homotopic", "Heterotopic"), ordered=TRUE))
+
+vertex.meta <- read_csv('./data/dros_vertices.csv') %>%
+  arrange(Hemisphere, Region) %>%
+  mutate(X1=X1 + 1)
+  
 
 pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
 ```
@@ -34,30 +41,51 @@ pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', 
 ## dMRI
 
 ```{r}
-dros.gr.plt <- ggplot(data=dros.gr, 
-                        mapping=aes(x=factor(Row), y=factor(Column), fill=Value)) +
-   geom_tile() + 
-   xlab("Vertex") + 
-   ylab("Vertex") + 
-   scale_fill_gradientn(colors=pow.cols, name="log(Edge Weight + .05)") + 
-   scale_x_discrete(expand=c(0,0)) + 
-   scale_y_discrete(expand=c(0,0)) + 
-   theme_bw() + 
-   ggtitle("(I) Average dMRI Connectome, N=1059")
+dros.gr.plt <- ggplot(data=dros.gr %>% mutate(Value=factor(as.integer(Value > 0), levels=c(1, 0), ordered=TRUE)), 
+                        mapping=aes(x=factor(Row, levels=vertex.meta$X1, ordered=TRUE), 
+                                    y=factor(Column, levels=vertex.meta$X1, ordered=TRUE), fill=Value)) +
+  geom_tile() + 
+  xlab("Vertex") + 
+  ylab("Vertex") + 
+  scale_fill_manual(values=c(`0`= pow.cols[1], `1`=pow.cols[length(pow.cols)]), name="") + 
+  scale_x_discrete(expand=c(0,0), breaks=c(1, dim(vertex.meta)[1])) + 
+  scale_y_discrete(expand=c(0,0), breaks=c(1, dim(vertex.meta)[1])) + 
+  theme_bw() + 
+  ggtitle("(I) Drosophila Connectome") +
+  guides(fill=FALSE)
+dros.gr.plt
 ```
 
-# Plot Edge Densities per-graph
+# Plot Edge Densities for each block
 
 ```{r}
 line.cols <- c("Within-Hemisphere"="purple", "Between-Hemisphere"="darkgreen")
-block.edge.plt <- ggplot(dmri.graphs, aes(log(Value + .5), color=Block, group=ID)) +
-  geom_density(aes(y=..scaled.., group=ID), size=.02, alpha=.1) +
+philic.edge.plt <- ggplot(dros.gr, aes(Value, color=Homophilic, fill=Homophilic, group=Homophilic)) +
+  geom_histogram(aes(y=..density..), position='identity', alpha=.4, binwidth = 1) +
   theme_bw() +
-  ylab("Relative Density") +
+  scale_y_sqrt(breaks=c(0, .01, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
+  ylab(TeX("Normalized Proportion of Edges")) +
+  scale_fill_manual(values=line.cols, name='Block') +
   scale_color_manual(values=line.cols, name='Block') +
-  scale_x_continuous(breaks=c(0, 5, 10)) +
-  facet_grid('.~Block') +
-  xlab("log(Edge Weight + .5)") +
-  ggtitle("(II) Density Estimate of Homophilic Communities") +
-  guides(color=FALSE)
+  scale_x_continuous(breaks=c(0, 10, 20), limits=c(-.5, 22), expand=c(0, 0), name="Edge Weight") +
+  ggtitle("(II) Histogram of Homophilic Communities, p-value = 0")
+philic.edge.plt
+```
+
+```{r}
+line.cols <- c("Homotopic"="purple", "Heterotopic"="darkgreen")
+topic.edge.plt <- ggplot(dros.gr, aes(Value, color=Homotopic, fill=Homotopic, group=Homotopic)) +
+  geom_histogram(aes(y=stat(density)), position='identity', alpha=.4, binwidth=1) +
+  theme_bw() +
+  scale_y_sqrt(breaks=c(0, .01, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
+  ylab(TeX("Normalized Proportion of Edges")) +
+  scale_fill_manual(values=line.cols, name='Block') +
+  scale_color_manual(values=line.cols, name='Block') +
+  scale_x_continuous(breaks=c(0, 10, 20), limits=c(-.5, 22), expand=c(0, 0), name="Edge Weight") +
+  ggtitle("(III) Histogram of Homotopic Communities, p-value = 0")
+topic.edge.plt
+```
+
+```{r}
+grid.arrange(dros.gr.plt, philic.edge.plt, topic.edge.plt, widths=c(.2, .4, .4))
 ```
