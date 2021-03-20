@@ -18,7 +18,9 @@ require(igraph)
 require(data.table)
 ```
 
-# Read and Preprocess the data
+# Weighted
+
+## Read and Preprocess the data
 
 ```{r}
 read.graph <- function(fname, key) {
@@ -59,11 +61,11 @@ test_results <- read.csv('./data/hcp_singlegraph_results.csv') %>%
 pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
 ```
 
-# Plot Adjacency matrices
+## Plot Adjacency matrices
 
 700x700
 
-## dMRI
+### dMRI
 
 ```{r}
 dmri.avg.plot <- ggplot(data=avg.graphs %>% filter(Modality == "dMRI"), 
@@ -78,7 +80,7 @@ dmri.avg.plot <- ggplot(data=avg.graphs %>% filter(Modality == "dMRI"),
    ggtitle("(I) Average dMRI Connectome, N=1059")
 ```
 
-# Plot Edge Densities per-graph
+## Plot Edge Densities per-graph
 
 ```{r}
 line.cols <- c("Within-Hemisphere"="purple", "Between-Hemisphere"="darkgreen")
@@ -96,4 +98,114 @@ block.edge.plt <- ggplot(dmri.graphs, aes(log(Value + .5), color=Block, group=ID
 
 ```{r}
 grid.arrange(dmri.avg.plot, block.edge.plt, nrow=1, widths=c(.5, 1))
+```
+
+
+# Unweighted
+
+## Read and Preprocess the data
+
+```{r}
+read.graph.uwt <- function(fname, key) {
+  read.csv(fname, header=FALSE) %>%
+    `colnames<-`(1:70) %>%
+    `rownames<-`(1:70) %>%
+    mutate(Row = row_number()) %>%
+    pivot_longer(-Row, names_to="Column", values_to="Value") %>%
+    mutate(Column=as.numeric(Column)) %>%
+    mutate(block_id_row=ifelse(Row <= 35, 1, 2), block_id_col=ifelse(Column <= 35, 1, 2)) %>%
+    mutate(Block=sprintf("(%d,%d)", block_id_row, block_id_col)) %>%
+    mutate(Block=recode_factor(Block, '(1,1)'='Within-Hemisphere', '(2,2)'='Within-Hemisphere', 
+                               '(1,2)'='Between-Hemisphere', '(2,1)'='contra_rl'),
+           ID=key, Value = as.numeric(Value > 0))
+}
+
+avg.graphs.uwt = do.call(rbind, lapply(list.files('./data/', '_avg_uwt.csv'), function(fname) {
+  sp.name = strsplit(fname, '_')[[1]]
+  key = ifelse(sp.name[2] == 'dmri', 'dMRI', 'fMRI')
+  read.graph(paste0('./data/', fname), key)
+})) %>%
+  rename(Modality=ID) %>%
+  mutate(Row = factor(Row, levels=1:70, ordered=TRUE), Column = factor(Column, levels=1:70, ordered=TRUE))
+vertices <- data.frame(ID=1:70, color=c(rep("blue", 35), rep("red", 35)))
+
+
+dmri.graphs.uwt = do.call(rbind, lapply(list.files('/data/hcp/dmri/', pattern='.csv'), function(fname) {
+  sp.name = strsplit(fname, '_')[[1]]
+  key = paste(sp.name[1], sp.name[2], sep="_")
+  gr = read.graph.uwt(paste0('/data/hcp/dmri/', fname), key)
+})) %>%
+  filter(Block != "contra_rl")
+
+test_results.uwt <- read.csv('./data/hcp_singlegraph_results_uwt.csv') %>%
+  mutate(p_val=p_val*n()) %>% # bonferroni correction
+  rename(pvalue=p_val)
+
+pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
+```
+
+## Plot Adjacency matrices
+
+700x700
+
+### dMRI
+
+```{r}
+dmri.avg.plot <- ggplot(data=avg.graphs.uwt %>% filter(Modality == "dMRI"), 
+                        mapping=aes(x=factor(Row), y=factor(Column), fill=Value)) +
+   geom_tile() + 
+   xlab("Vertex") + 
+   ylab("Vertex") + 
+   scale_fill_gradientn(colors=pow.cols, breaks=c(0, .5, 1), name="Prob.") + 
+   scale_x_discrete(expand=c(0,0), breaks=c(1,70)) + 
+   scale_y_discrete(expand=c(0,0), breaks=c(1,70), limits=rev(levels(avg.graphs$Column))) + 
+   theme_bw() + 
+   ggtitle("III.(A) Average dMRI Connectome, N=1059")
+dmri.avg.plot
+```
+
+## Plot Edge Densities per-graph
+
+```{r}
+line.cols <- c("Within-Hem."="purple", "Between-Hem."="darkgreen")
+dmri.blocks.uwt <- dmri.graphs.uwt %>%
+  group_by(ID, Block) %>%
+  summarize(prob=mean(Value))
+block.edge.plt <- ggplot(dmri.blocks.uwt %>%
+                           mutate(Block=recode_factor(Block, "Within-Hemisphere"="Within-Hem.",
+                                                      "Between-Hemisphere"="Between-Hem.")),
+                         aes(prob, color=Block, group=Block)) +
+  geom_density(aes(y=..scaled..), size=1, alpha=1) +
+  geom_rug(sides="b", size=.2, alpha=.5) +
+  theme_bw() +
+  ylab("Relative Density") +
+  scale_color_manual(values=line.cols, name='Block') +
+  scale_x_continuous(breaks=c(0, .25, .5, .75), limits=c(0, .75)) +
+  xlab("Average Community Probability") +
+  ggtitle("III.(B) Density Estimate of Homophilic Communities")
+block.edge.plt
+```
+
+```{r}
+dmri.blocks.uwt.paired <- dmri.blocks.uwt %>%
+  pivot_wider(names_from=Block, values_from=prob, values_fill=0) %>%
+  mutate(Difference = `Within-Hemisphere` - `Between-Hemisphere`)
+paired.diff.plt <- ggplot(dmri.blocks.uwt.paired, aes(Difference)) +
+  geom_density(aes(y=..scaled..), size=1, alpha=1) +
+  geom_rug(sides="b", size=.2, alpha=.5) +
+  theme_bw() +
+  ylab("Relative Density") +
+  scale_color_manual(values=line.cols, name='Block') +
+  scale_x_continuous(breaks=c(-.5, 0, .5), limits=c(-.5, .5)) +
+  xlab("Difference Within - Between") +
+  ggtitle("III.(C) Density Estimate of Effect Size") +
+  guides(color=FALSE)
+paired.diff.plt
+```
+
+1250 x 260 pixels svg
+
+```{r}
+hcp.siem <- arrangeGrob(dmri.avg.plot, arrangeGrob(block.edge.plt, paired.diff.plt), widths=c(.5, .5))
+plot(hcp.siem)
 ```

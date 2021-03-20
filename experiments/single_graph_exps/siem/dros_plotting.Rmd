@@ -15,6 +15,8 @@ require(gtable)
 require(circlize)
 require(igraph)
 require(data.table)
+require(latex2exp)
+require(lemon)
 ```
 
 # Read and Preprocess the data
@@ -34,11 +36,11 @@ vertex.meta <- read_csv('./data/dros_vertices.csv') %>%
 pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
 ```
 
+## Weighted
+
 # Plot Adjacency matrices
 
 700x700
-
-## dMRI
 
 ```{r}
 dros.gr.plt <- ggplot(data=dros.gr %>% mutate(Value=factor(as.integer(Value > 0), levels=c(1, 0), ordered=TRUE)), 
@@ -47,12 +49,11 @@ dros.gr.plt <- ggplot(data=dros.gr %>% mutate(Value=factor(as.integer(Value > 0)
   geom_tile() + 
   xlab("Vertex") + 
   ylab("Vertex") + 
-  scale_fill_manual(values=c(`0`= pow.cols[1], `1`=pow.cols[length(pow.cols)]), name="") + 
-  scale_x_discrete(expand=c(0,0), breaks=c(1, dim(vertex.meta)[1])) + 
-  scale_y_discrete(expand=c(0,0), breaks=c(1, dim(vertex.meta)[1])) + 
+  scale_fill_manual(values=c(`0`= pow.cols[1], `1`=pow.cols[length(pow.cols)]), name="Edge", breaks=c(1, 0), labels=c("Y", "N")) + 
+  scale_x_discrete(expand=c(0,0), breaks=c(1, 317), labels=c(1, 319)) + 
+  scale_y_discrete(expand=c(0,0), breaks=c(1, 317), labels=c(1, 319)) + 
   theme_bw() + 
-  ggtitle("(I) Drosophila Connectome") +
-  guides(fill=FALSE)
+  ggtitle("(I) Connectome")
 dros.gr.plt
 ```
 
@@ -63,12 +64,12 @@ line.cols <- c("Within-Hemisphere"="purple", "Between-Hemisphere"="darkgreen")
 philic.edge.plt <- ggplot(dros.gr, aes(Value, color=Homophilic, fill=Homophilic, group=Homophilic)) +
   geom_histogram(aes(y=..density..), position='identity', alpha=.4, binwidth = 1) +
   theme_bw() +
-  scale_y_sqrt(breaks=c(0, .01, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
-  ylab(TeX("Normalized Proportion of Edges")) +
+  scale_y_sqrt(breaks=c(0, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
+  ylab(TeX("Proportion of Edges")) +
   scale_fill_manual(values=line.cols, name='Block') +
   scale_color_manual(values=line.cols, name='Block') +
   scale_x_continuous(breaks=c(0, 10, 20), limits=c(-.5, 22), expand=c(0, 0), name="Edge Weight") +
-  ggtitle("(II) Histogram of Homophilic Communities, p-value = 0")
+  ggtitle("(II) Histogram of Homophilic Communities")
 philic.edge.plt
 ```
 
@@ -77,15 +78,257 @@ line.cols <- c("Homotopic"="purple", "Heterotopic"="darkgreen")
 topic.edge.plt <- ggplot(dros.gr, aes(Value, color=Homotopic, fill=Homotopic, group=Homotopic)) +
   geom_histogram(aes(y=stat(density)), position='identity', alpha=.4, binwidth=1) +
   theme_bw() +
-  scale_y_sqrt(breaks=c(0, .01, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
-  ylab(TeX("Normalized Proportion of Edges")) +
+  scale_y_sqrt(breaks=c(0, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
+  ylab(TeX("Proportion of Edges")) +
   scale_fill_manual(values=line.cols, name='Block') +
   scale_color_manual(values=line.cols, name='Block') +
   scale_x_continuous(breaks=c(0, 10, 20), limits=c(-.5, 22), expand=c(0, 0), name="Edge Weight") +
-  ggtitle("(III) Histogram of Homotopic Communities, p-value = 0")
+  ggtitle("(III) Histogram of Homotopic Communities")
 topic.edge.plt
 ```
 
 ```{r}
-grid.arrange(dros.gr.plt, philic.edge.plt, topic.edge.plt, widths=c(.2, .4, .4))
+grid.arrange(dros.gr.plt, philic.edge.plt, topic.edge.plt, widths=c(.2, .47, .4))
+```
+
+```{r}
+dros.gr.block <- dros.gr %>%
+  left_join(vertex.meta %>% select(X1, Hemisphere) %>% rename(Hemisphere.Row=Hemisphere), by=c("Row"="X1")) %>%
+  left_join(vertex.meta %>% select(X1, Hemisphere) %>% rename(Hemisphere.Col=Hemisphere), by=c("Column"="X1")) %>%
+  filter(Hemisphere.Row != "center" & Hemisphere.Col != "center") %>%
+  mutate(Hemisphere.Row=factor(recode_factor(Hemisphere.Row, "left"="Left", "right"="Right"),
+                               levels=c("Left", "Right"), ordered=TRUE),
+         Hemisphere.Col=factor(recode_factor(Hemisphere.Col, "left"="Left", "right"="Right"),
+                               levels=c("Left", "Right"), ordered=TRUE))
+```
+
+```{r}
+line.cols = c("(Left,Left)"="blue", "(Right,Right)"="red", "(Left,Right)"="#7f9984", "(Right,Left)"="#007f18")
+dros.gr.block %>%
+  mutate(Block = sprintf("(%s,%s)", Hemisphere.Row, Hemisphere.Col)) %>%
+  ggplot(aes(Value, fill=Block, color=Block, group=Block)) +
+  geom_histogram(aes(y=stat(density)), position='identity', alpha=.4, binwidth=1) +
+  theme_bw() +
+  scale_y_sqrt(breaks=c(0, .01, .1, .3, .6, 1), limits=c(0, 1), expand=c(0,0)) +
+  facet_grid('Hemisphere.Row ~ Hemisphere.Col') +
+  scale_fill_manual(values=line.cols, name='Block') +
+  scale_color_manual(values=line.cols, name='Block') +
+  theme_bw() +
+  scale_x_continuous(breaks=c(0, 10, 20), limits=c(-.5, 22), expand=c(0, 0), name="Edge Weight") +
+  ylab("Proportion of Edges") +
+  ggtitle("Identification of Optimal Block Structure for Drosophila Connectome")
+```
+
+
+## Unweighted
+
+# Plot Adjacency matrices
+
+700x700
+
+```{r}
+dros.gr.bin <- dros.gr %>% mutate(Value=factor(as.integer(Value > 0), levels=c(1,0), ordered=TRUE),
+                                  Row=factor(Row, levels=vertex.meta$X1, ordered=TRUE),
+                                  Column=factor(Column, levels=vertex.meta$X1, ordered=TRUE))
+dros.gr.plt <- ggplot(data=dros.gr.bin, 
+                        mapping=aes(x=Row, Column, fill=Value)) +
+  geom_tile() + 
+  xlab("Vertex") + 
+  ylab("Vertex") + 
+  scale_fill_manual(values=c(`0`= pow.cols[1], `1`=pow.cols[length(pow.cols)]), breaks=c(1, 0), labels=c("Y", "N"), name="Edge") + 
+  scale_x_discrete(expand=c(0,0), breaks=c(1, 317), labels=c(1,319)) + 
+  scale_y_discrete(expand=c(0,0), breaks=c(1, 317), labels=c(1, 319), limits=rev(levels(dros.gr.bin$Column))) +
+  theme_bw() + 
+  ggtitle("II.(A) Drosophila Mushroom Body")
+dros.gr.plt
+```
+
+# Homophilic Contingency Table
+
+```{r}
+line.cols <- c("Within Hem."="purple", "Between Hem."="darkgreen")
+homophilic.cnt.tbl <- dros.gr.bin %>%
+  mutate(Value=factor(Value, levels=c(0,1), ordered=TRUE)) %>%
+  mutate(Value=recode_factor(Value, `0`="No Edge", `1`="Edge")) %>%
+  group_by(Value, Homophilic) %>%
+  summarize(count=length(Value)) %>%
+  group_by(Homophilic) %>%
+  mutate(proportion=count/sum(count)) %>%
+  mutate(Homophilic=recode_factor(Homophilic, "Within-Hemisphere"="Within Hem.",
+                                  "Between-Hemisphere"="Between Hem."))
+
+homop.gr.marginal.val <- homophilic.cnt.tbl %>%
+  group_by(Value) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  mutate(Homophilic="Marginal", proportion=0)
+
+homop.gr.marginal.block <- homophilic.cnt.tbl %>%
+  group_by(Homophilic) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  mutate(Value="Marginal", proportion=0)
+
+homop.gr.marginal.overall <- homophilic.cnt.tbl %>%
+  group_by() %>%
+  summarize(count=sum(count)) %>%
+  mutate(Value="Marginal", Homophilic="Marginal", proportion=0)
+
+philic.edge.plt <- homophilic.cnt.tbl %>%
+  rbind(homop.gr.marginal.val, homop.gr.marginal.block, homop.gr.marginal.overall) %>%
+  mutate(Homophilic=factor(Homophilic, levels=c("Within Hem.", "Between Hem.", "Marginal"),
+                      ordered=TRUE),
+         Value=factor(Value, levels=c("No Edge", "Edge", "Marginal"), ordered=TRUE))  %>%
+  mutate(Color=factor(ifelse(proportion > .5, 1, 0)),
+         Text=ifelse(as.character(Value) == "Marginal" | as.character(Homophilic) == "Marginal", sprintf("n=%d", count), sprintf("%.1f%%", 100*proportion))) %>%
+  ggplot(aes(fill=proportion, x=1,y=1)) +
+  geom_tile() +
+  # geom_text(aes(x=1, y=1, color=Color, label=sprintf("n=%d, %.1f%%", count, 100*proportion))) +
+  geom_text(aes(x=1, y=1, color=Color, label=Text)) +
+  scale_fill_gradientn(colors=pow.cols, name="Proportion", values = seq(0, 1, length.out=length(pow.cols)), breaks=c(0, 1, .5), limits=c(0, 1)) +
+  scale_color_manual(values=c(`0`="black", `1`="white")) +
+  scale_x_continuous(expand = c(0,0), name="") +
+  scale_y_continuous(expand=c(0,0),  name="Edge Community") +
+  facet_grid('Homophilic ~ Value', switch="y") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text=element_blank(),
+        panel.spacing = unit(0, "lines"),
+        strip.text.y.left = element_text(angle = 0)) +
+  guides(color=FALSE) +
+  ggtitle("II.(B) Homophilic, p-value=0")
+  
+philic.edge.plt
+```
+
+```{r}
+line.cols <- c("Homotopic"="purple", "Heterotopic"="darkgreen")
+homotopic.cnt.tbl <- dros.gr.bin %>%
+  mutate(Value=factor(Value, levels=c(0,1), ordered=TRUE)) %>%
+  mutate(Value=recode_factor(Value, `0`="No Edge", `1`="Edge")) %>%
+  group_by(Value, Homotopic) %>%
+  summarize(count=length(Value)) %>%
+  group_by(Homotopic) %>%
+  mutate(proportion=count/sum(count))
+
+homo.gr.marginal.val <- homotopic.cnt.tbl %>%
+  group_by(Value) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  mutate(Homotopic="Marginal", proportion=0)
+
+homo.gr.marginal.block <- homotopic.cnt.tbl %>%
+  group_by(Homotopic) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  mutate(Value="Marginal", proportion=0)
+
+homo.gr.marginal.overall <- homotopic.cnt.tbl %>%
+  group_by() %>%
+  summarize(count=sum(count)) %>%
+  mutate(Value="Marginal", Homotopic="Marginal", proportion=0)
+
+topic.edge.plt <- homotopic.cnt.tbl %>%
+  rbind(homo.gr.marginal.block, homo.gr.marginal.val, homo.gr.marginal.overall) %>%
+  mutate(Homotopic=factor(Homotopic, levels=c("Homotopic", "Heterotopic", "Marginal"),
+                      ordered=TRUE),
+         Value=factor(Value, levels=c("No Edge", "Edge", "Marginal"), ordered=TRUE))  %>%
+  mutate(Color=factor(ifelse(proportion > .5, 1, 0)),
+         Text=ifelse(as.character(Value) == "Marginal" | as.character(Homotopic) == "Marginal", sprintf("n=%d", count), sprintf("%.1f%%", 100*proportion))) %>%
+  ggplot(aes(fill=proportion, x=1,y=1)) +
+  geom_tile() +
+  #geom_text(aes(x=1, y=1, color=Color, label=sprintf("n=%d, %.1f%%", count, 100*proportion))) +
+  geom_text(aes(x=1, y=1, color=Color, label=Text)) +
+  scale_fill_gradientn(colors=pow.cols, name="Proportion", values = seq(0, 1, length.out=length(pow.cols)), breaks=c(0, 1, .5), limits=c(0, 1)) +
+  scale_color_manual(values=c(`0`="black", `1`="white")) +
+  scale_x_continuous(expand = c(0,0), name="") +
+  scale_y_continuous(expand=c(0,0),  name="Edge Community") +
+  facet_grid('Homotopic ~ Value', switch="y") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text=element_blank(),
+        panel.spacing = unit(0, "lines"),
+        strip.text.y.left = element_text(angle = 0)) +
+  guides(color=FALSE) +
+  ggtitle("II.(C) Homotopic, p-value=0")
+  
+topic.edge.plt
+```
+
+```{r}
+shared.guide <- g_legend(philic.edge.plt)
+right.plt <- arrangeGrob(arrangeGrob(philic.edge.plt + guides(fill=FALSE), topic.edge.plt + guides(fill=FALSE), ncol=1),
+            shared.guide, nrow=1, widths=c(.7, .15))
+
+dros.siem <- arrangeGrob(dros.gr.plt, right.plt, nrow=1, widths=c(.5,.5))
+plot(dros.siem)
+```
+
+```{r}
+dros.gr.block <- dros.gr.bin %>%
+  mutate(Row = as.numeric(as.character(Row)), Column=as.numeric(as.character(Column))) %>%
+  left_join(vertex.meta %>% select(X1, Hemisphere) %>% rename(Hemisphere.Row=Hemisphere), by=c("Row"="X1")) %>%
+  left_join(vertex.meta %>% select(X1, Hemisphere) %>% rename(Hemisphere.Col=Hemisphere), by=c("Column"="X1")) %>%
+  filter(Hemisphere.Row != "center" & Hemisphere.Col != "center") %>%
+  mutate(Hemisphere.Row=factor(recode_factor(Hemisphere.Row, "left"="Left", "right"="Right"),
+                               levels=c("Left", "Right"), ordered=TRUE),
+         Hemisphere.Col=factor(recode_factor(Hemisphere.Col, "left"="Left", "right"="Right"),
+                               levels=c("Left", "Right"), ordered=TRUE)) %>%
+  mutate(Block=sprintf("(%s,%s)", Hemisphere.Row, Hemisphere.Col))
+```
+
+```{r}
+dros.gr.block.sum <- dros.gr.block %>%
+  mutate(Value=factor(Value, levels=c(0,1), ordered=TRUE)) %>%
+  mutate(Value=recode_factor(Value, `0`="No Edge", `1`="Edge")) %>%
+  group_by(Value, Block) %>%
+  summarize(count=length(Value)) %>%
+  group_by(Block) %>%
+  mutate(proportion=count/sum(count))
+
+dros.gr.marginal.val <- dros.gr.block.sum %>%
+  group_by(Value) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  mutate(Block="Marginal", proportion=0)
+
+dros.gr.marginal.block <- dros.gr.block.sum %>%
+  group_by(Block) %>%
+  summarize(count = sum(count)) %>%
+  ungroup() %>%
+  mutate(Value="Marginal", proportion=0)
+
+dros.gr.marginal.overall <- dros.gr.block.sum %>%
+  group_by() %>%
+  summarize(count=sum(count)) %>%
+  mutate(Value="Marginal", Block="Marginal", proportion=0)
+
+dros.sbm.plt <- dros.gr.block.sum %>%
+  rbind(dros.gr.marginal.val, dros.gr.marginal.block, dros.gr.marginal.overall) %>%
+  mutate(Block=factor(Block, levels=c("(Left,Left)", "(Right,Right)", "(Left,Right)", "(Right,Left)", "Marginal"),
+                      ordered=TRUE),
+         Value=factor(Value, levels=c("No Edge", "Edge", "Marginal"), ordered=TRUE)) %>%
+  group_by(Block) %>%
+  mutate(Color=factor(ifelse(proportion > .5, 1, 0)),
+         Text=ifelse(as.character(Value) == "Marginal" | as.character(Block) == "Marginal", sprintf("n=%d", count), sprintf("%.1f%%", 100*proportion))) %>%
+  ggplot(aes(fill=proportion, x=1,y=1)) +
+  geom_tile() +
+  #geom_text(aes(x=1, y=1, color=Color, label=sprintf("n=%d, %.1f%%", count, 100*proportion))) +
+  geom_text(aes(x=1, y=1, color=Color, label=Text)) +
+  scale_fill_gradientn(colors=pow.cols, name="Proportion\nin Block", values = seq(0, 1, length.out=length(pow.cols)), breaks=c(0, 1, .5), limits=c(0, 1)) +
+  scale_color_manual(values=c(`0`="black", `1`="white")) +
+  scale_x_continuous(expand = c(0,0), name="") +
+  scale_y_continuous(expand=c(0,0),  name="Block") +
+  facet_grid('Block ~ Value', switch="y") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text=element_blank(),
+        panel.spacing = unit(0, "lines"),
+        strip.text.y.left = element_text(angle = 0)) +
+  guides(color=FALSE) +
+  ggtitle("II. Drosophila Contingency Table Per-block")
+plot(dros.sbm.plt)
 ```

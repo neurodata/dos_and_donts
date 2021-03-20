@@ -14,7 +14,9 @@ require(kableExtra)
 require(gtable)
 ```
 
-# Read and Preprocess the data
+# Weighted
+
+## Read and Preprocess the data
 
 ```{r}
 read.graph <- function(fname, key) {
@@ -42,7 +44,7 @@ test_results <- read.csv('./data/hcp_block_est.csv') %>%
   mutate(pvalue=pvalue*n()) # bonferroni correction
 ```
 
-## Block Plot
+### Block Plot
 
 ```{r}
 line.cols <- c("Left"="blue", "Right"="red", "Contralateral"="darkgreen")
@@ -58,7 +60,7 @@ block.edge.plt <- ggplot(dmri.graphs, aes(log(Value + .5), color=Block, group=ID
   guides(color=FALSE)
 ```
 
-## Table
+### Table
 
 ```{r}
 tabl_results <- do.call(rbind, lapply(unique(test_results$Method), function(meth) {
@@ -73,7 +75,7 @@ tabl_results <- do.call(rbind, lapply(unique(test_results$Method), function(meth
   rename("ER"="aaaa", "Sym. Hom."="abba", "Sym. Het."="abbd")
 ```
 
-## Combine
+### Combine
 ```{r}
 tabl <- tableGrob(tabl_results, rows=NULL)
 title <- textGrob("(II) Identified Block Structure", gp = gpar(fontsize = 14))
@@ -84,4 +86,56 @@ tabl <- gtable_add_grob(
 )
 
 grid.arrange(block.edge.plt, tabl, nrow=1, widths=c(.9, .4))
+```
+
+# Unweighted
+
+```{r}
+read.graph.uwt <- function(fname, key) {
+  read.csv(fname, header=FALSE) %>%
+    `colnames<-`(1:70) %>%
+    `rownames<-`(1:70) %>%
+    mutate(Row = row_number()) %>%
+    pivot_longer(-Row, names_to="Column", values_to="Value") %>%
+    mutate(Column=as.numeric(Column)) %>%
+    mutate(block_id_row=ifelse(Row <= 35, 1, 2), block_id_col=ifelse(Column <= 35, 1, 2)) %>%
+    mutate(Block=sprintf("(%d,%d)", block_id_row, block_id_col)) %>%
+    mutate(Block=recode_factor(Block, '(1,1)'='Left', '(2,2)'='Right', 
+                               '(1,2)'='Between', '(2,1)'='contra_rl'),
+           ID=key, Value = as.numeric(Value > 0))
+}
+
+dmri.graphs.uwt = do.call(rbind, lapply(list.files('/data/hcp/dmri/', pattern='.csv'), function(fname) {
+  sp.name = strsplit(fname, '_')[[1]]
+  key = paste(sp.name[1], sp.name[2], sep="_")
+  read.graph.uwt(paste0('/data/hcp/dmri/', fname), key)
+})) %>%
+  filter(Block != "contra_rl")
+  
+  
+test_results.uwt <- read.csv('./data/hcp_block_est_uwt.csv') %>%
+  mutate(pvalue=pvalue*n()) # bonferroni correction
+```
+
+### Block Plot
+
+```{r}
+randomly <- function(x) sample(xtfrm(x))
+
+line.cols <- c("Left"="blue", "Right"="red", "Between"="darkgreen")
+hcp.block.edge.plt <- dmri.graphs.uwt %>%
+  dplyr::group_by(Block, ID) %>%
+  dplyr::summarize(prob=mean(Value)) %>%
+  dplyr::mutate(n=row_number(), rand.idx = randomly(n)) %>%
+  dplyr::arrange(rand.idx) %>%
+  ggplot(aes(prob, color=Block, group=Block)) +
+  geom_line(aes(y=..scaled..), size=1, alpha=1, stat="density") +
+  geom_rug(sides="b", size=.2, alpha=.5, length=ggplot2::unit(.3, "cm")) +
+  theme_bw() +
+  ylab("Relative Density") +
+  scale_color_manual(values=line.cols, name='Block') +
+  scale_x_continuous(breaks=c(0, .25, .5, .75), limits=c(0, .75)) +
+  xlab("Average Block Probability") +
+  ggtitle("III. N=1059 HCP Connectomes Within-Block Probability")
+hcp.block.edge.plt
 ```

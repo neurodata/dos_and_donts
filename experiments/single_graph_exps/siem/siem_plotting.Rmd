@@ -15,22 +15,34 @@ require(tidyverse)
 ## Prepare Data for Plotting
 
 ```{r}
+alpha = .05
+
 gr.dat <- read.csv('./data/uwt_simulations.csv') %>%
-  mutate(Row=factor(Row), Column=factor(Column), Weight=factor(Weight), 
-         Method=factor(Method, levels=c("SBM", "SIEM", "rSBM"), ordered=TRUE))
-hmap.dat <- read.csv('./data/uwt_power_map.csv') %>%
-  mutate(n=factor(n, levels=sort(unique(n)), ordered=TRUE),
-         Effect_Size=factor(Effect_Size, levels=sort(unique(Effect_Size)), ordered=TRUE)) %>%
-   filter(Simulation != "nSBM")
+   filter(Method != "rSBM") %>%
+   mutate(Row=factor(Row), Column=factor(Column), Weight=factor(Weight), 
+         Method=factor(Method, levels=c("SBM", "SIEM"), ordered=TRUE)) %>%
+   mutate(Method=recode_factor(Method, "SBM"="Homophilic", "SIEM"="Homotopic"))
+hmap.dat <- read.csv('./data/singlegraph_results.csv') %>%
+   pivot_longer(c("FET", "LRT"), names_to="Test", values_to="pvalue") %>%
+   group_by(Simulation, Weighting, n, Effect_Size, Test) %>%
+   mutate(Power=pvalue < alpha) %>%
+   summarise(Power = mean(Power)) %>%
+   group_by(Simulation, Weighting, n) %>%
+   mutate(Effect_Size=round((Effect_Size - min(Effect_Size))/(max(Effect_Size) - min(Effect_Size)), digits=3)) %>%
+   ungroup() %>%
+   mutate(n=factor(n, levels=sort(unique(n)), ordered=TRUE),
+          Effect_Size=factor(Effect_Size, levels=sort(unique(Effect_Size)), ordered=TRUE)) %>%
+   filter(!(Simulation %in% c("rSBM", "nSBM")) & Test == "FET") %>%
+   mutate(Simulation=recode_factor(Simulation, "SBM"="Homophilic", "SIEM"="Homotopic"))
 fixedn.dat <- hmap.dat %>%
-  filter(n == 56)
+  filter(n == 50)
 
 pow.cols <- c('#f7f6f6', '#f7f5f4', '#f8f4f2', '#f8f3f0', '#f8f1ed', '#f9f0eb', '#f9efe9', '#f9eee7', '#f9ebe3', '#faeae1', '#fae9df', '#fae8de', '#fbe6da', '#fbe5d8', '#fbe4d6', '#fce2d2', '#fce0d0', '#fcdfcf', '#fcdecd', '#fddcc9', '#fddbc7', '#fdd9c4', '#fcd7c2', '#fcd3bc', '#fbd0b9', '#fbceb7', '#fbccb4', '#fac8af', '#f9c6ac', '#f9c4a9', '#f8bfa4', '#f8bda1', '#f8bb9e', '#f7b99c', '#f7b596', '#f6b394', '#f6b191', '#f6af8e', '#f5aa89', '#f5a886', '#f4a683', '#f3a481', '#f19e7d', '#f09c7b', '#ef9979', '#ec9374', '#eb9172', '#ea8e70', '#e98b6e', '#e6866a', '#e58368', '#e48066', '#e37e64', '#e17860', '#df765e', '#de735c', '#dd7059', '#db6b55', '#da6853', '#d86551', '#d6604d', '#d55d4c', '#d35a4a', '#d25849', '#cf5246', '#ce4f45', '#cc4c44', '#cb4942', '#c84440', '#c6413e', '#c53e3d', '#c43b3c', '#c13639', '#bf3338', '#be3036', '#bb2a34', '#ba2832', '#b82531', '#b72230', '#b41c2d', '#b3192c', '#b1182b', '#ae172a', '#a81529', '#a51429', '#a21328', '#9f1228', '#991027', '#960f27', '#930e26', '#8d0c25', '#8a0b25', '#870a24', '#840924', '#7f0823', '#7c0722', '#790622', '#760521', '#700320', '#6d0220', '#6a011f')
 ```
 
 ## Sim Plots
 
-```{r, fig.width=2.5, fig.height=6}
+```{r, fig.width=2.5, fig.height=4}
 uw.sim.plt <- ggplot(data=gr.dat, mapping=aes(x=Row, y=Column, fill=Weight)) +
    geom_tile() +
    facet_grid("Method~.", switch="y") +
@@ -40,52 +52,55 @@ uw.sim.plt <- ggplot(data=gr.dat, mapping=aes(x=Row, y=Column, fill=Weight)) +
    scale_y_discrete(breaks=c(1, 50), limits=rev(levels(gr.dat$Column))) +
    scale_fill_manual(values=c(`0`=pow.cols[1], `1`=pow.cols[length(pow.cols)])) +
    theme_bw() +
-   ggtitle("(I) Simulations") +
+   ggtitle("I.(A) Simulations") +
    guides(fill="none")
 uw.sim.plt
 ```
 
 ## HMap Plots
 
-```{r, fig.width=12, fig.height=6}
-uw.hmap.plt <- ggplot(data=hmap.dat, mapping=aes(x=n, y=Effect_Size, fill=power)) +
+```{r, fig.width=3, fig.height=4}
+uw.hmap.plt <- ggplot(data=hmap.dat, mapping=aes(x=n, y=Effect_Size, fill=Power)) +
    geom_tile() + 
-   facet_grid("Simulation ~ Test") + 
+   #facet_grid("Simulation ~ Test") + 
+   facet_grid("Simulation ~ .") + 
    xlab("Number of Vertices") + 
    ylab("Effect Size") + 
-   scale_fill_gradientn(colors=pow.cols, name="Power", breaks=c(0, .5, 1)) + 
+   scale_fill_gradientn(colors=pow.cols, name="Power", breaks=c(0, .5, 1), limits=c(0,1)) + 
    scale_x_discrete(breaks=c(20, 100)) + 
    scale_y_discrete(breaks=c(0,1)) + 
    theme_bw() + 
-   ggtitle("(II) Power Maps") +
+   ggtitle("I.(B) Power Maps") +
    theme(strip.background.y = element_blank(), strip.text.y = element_blank())
 uw.hmap.plt
 ```
 
 ## Fixed n Plots
 
-```{r, fig.width=4, fig.height=6}
+```{r, fig.width=2.5, fig.height=6}
 alpha=.05
-uw.fixedn.plt <- ggplot(data=fixedn.dat, mapping=aes(x=as.numeric(Effect_Size), y=power,
+uw.fixedn.plt <- ggplot(data=fixedn.dat, mapping=aes(x=as.numeric(as.character(Effect_Size)), y=Power,
                                                         color=factor(Test), group=factor(Test))) + 
    geom_line() +
    facet_grid("Simulation~.") +
    xlab("Relative Effect Size") +
    ylab("Power") +
-   scale_x_continuous(breaks=c(1, 5.5, 10), labels=c(0,.5, 1)) +
+   scale_x_continuous(breaks=c(0, .5, 1),labels=c(0,.5, 1)) +
    scale_y_continuous(limits=c(0,1), breaks=c(0,1)) +
    scale_color_discrete(name="Test") +
    geom_hline(mapping=aes(yintercept=alpha)) +
    theme_bw() +
-   ggtitle("(III) Power Plots, n=56") +
-   theme(strip.background = element_blank(), strip.text.y = element_blank())
+   ggtitle("I.(C) Power Plots, n=50") +
+   theme(strip.background = element_blank(), strip.text.y = element_blank()) +
+   guides(color=FALSE)
 uw.fixedn.plt
 ```
 
 ## Multiplot
 
-Figure size is 5.5 x 15 inches
+Figure size is 4 x 7.5 inches
 
-```{r, fig.height=6, fig.width=17}
-grid.arrange(uw.sim.plt, uw.hmap.plt, uw.fixedn.plt, nrow=1, widths=c(1.1, 5, 1.6))
+```{r, fig.height=4, fig.width=7.5}
+sim.siem <- arrangeGrob(uw.sim.plt, uw.hmap.plt, nrow=1, widths=c(.8, 1.4))
+plot(sim.siem)
 ```
